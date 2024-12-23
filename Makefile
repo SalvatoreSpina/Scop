@@ -1,16 +1,18 @@
-NAME =		abstract_vm
+NAME =		scop
 
 COMP =		c++
 CPPFLAGS =	-Wall -Werror -Wextra -std=c++20 -Iincludes #-g -fsanitize=address
+LDFLAGS = -lGL -lglfw
 
-SRCS =		srcs/main.cpp
+SRCS =		srcs/main.cpp \
+			srcs/parser.cpp \
 
 OBJS =		$(SRCS:%.cpp=%.o)
 
 all: $(NAME)
 
 $(NAME):	$(OBJS)
-	@$(COMP) $(CPPFLAGS) $^ -o $@
+	@$(COMP) $(CPPFLAGS) $(LDFLAGS) $^ -o $@
 
 clean:
 	@$(RM) $(OBJS)
@@ -23,10 +25,10 @@ re:
 	@make all
 
 sanitize:
-	@$(COMP) $(CPPFLAGS) -g -fsanitize=address $(SRCS) -o $(NAME)
+	@$(COMP) $(CPPFLAGS) $(LDFLAGS) -g -fsanitize=address $(SRCS) -o $(NAME)
 
 build:
-	@docker build -t abstract_vm_image .
+	@docker build -t scop_image .
 
 destroy:
 	@docker rmi abstract_vm_image
