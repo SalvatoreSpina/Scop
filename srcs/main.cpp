@@ -1,87 +1,45 @@
-#include <GLFW/glfw3.h>
+#include "parsing.hpp"
+#include "window.hpp" // Contains initializeGLFW(), createWindow(), and mainLoop()
+
 #include <iostream>
 #include <string>
-#include "scop.hpp"
 
-struct OBJModel;
+/**
+ * @brief Program entry point.
+ *
+ * @param argc Number of command-line arguments.
+ * @param argv Command-line arguments.
+ * @return int Exit code.
+ */
+int main(int argc, char **argv) {
+  OBJModel model;
 
-void printUsage(const char* programName) {
-    std::cerr << "Usage: " << programName << " <path/to/your/model.obj>\n";
-}
+  // 1. Parse command-line arguments and load the model
+  if (!parseArguments(argc, argv, model)) {
+    return 1;
+  }
 
-bool parsing(int argc, char** argv, OBJModel& model)
-{
-    if (argc != 2) {
-        printUsage(argv[0]);
-        return false;
-    }
+  // 2. Initialize GLFW
+  if (!initializeGLFW()) {
+    return 1;
+  }
 
-    std::string filePath = argv[1];
-    std::cerr << "Loading OBJ file: " << filePath << "\n";
+  // 3. Create the window
+  GLFWwindow *window = createWindow(960, 540, "Scop");
+  if (!window) {
+    return 1; // createWindow() already printed the error and called
+              // glfwTerminate()
+  }
 
-    if (loadOBJ(filePath, model)) {
-        std::cout << "Loaded OBJ file successfully!\n";
-        std::cout << "Vertices: " << model.vertices.size() << "\n";
-        std::cout << "Texture Coords: " << model.texCoords.size() << "\n";
-        std::cout << "Normals: " << model.normals.size() << "\n";
-        std::cout << "Faces: " << model.faces.size() << "\n";
-        return true;
-    } else {
-        std::cerr << "Failed to load OBJ file.\n";
-        return false;
-    }
-}
+  // 4. Make the context current AFTER the window has been created
+  glfwMakeContextCurrent(window);
 
-bool initializeGLFW() {
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW.\n";
-        return false;
-    }
-    return true;
-}
+  // 5. Start the rendering/main loop
+  mainLoop(window);
 
-GLFWwindow* createWindow(int width, int height, const char* title) {
-    GLFWwindow* window = glfwCreateWindow(width, height, title, NULL, NULL);
-    if (!window) {
-        std::cerr << "Failed to create GLFW window.\n";
-        glfwTerminate();
-    }
-    return window;
-}
+  // 6. Clean up GLFW
+  glfwDestroyWindow(window);
+  glfwTerminate();
 
-void mainLoop(GLFWwindow* window) {
-    while (!glfwWindowShouldClose(window)) {
-        // Render here
-
-        // Swap front and back buffers
-        glfwSwapBuffers(window);
-
-        // Poll for and process events
-        glfwPollEvents();
-    }
-}
-
-int main(int argc, char** argv) {
-
-
-    OBJModel model;
-
-    if (!parsing(argc, argv, model))
-        return 1;
-
-    GLFWwindow* window = createWindow(1920, 1080, "Scop");
-    if (!window) {
-        return 1;
-    }
-    glfwMakeContextCurrent(window);
-
-    if (!initializeGLFW()) {
-        return 1;
-    }
-
-    mainLoop(window);
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    return 0;
+  return 0;
 }

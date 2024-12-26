@@ -5,7 +5,9 @@ CPPFLAGS =	-Wall -Werror -Wextra -std=c++20 -Iincludes #-g -fsanitize=address
 LDFLAGS = -lGL -lglfw
 
 SRCS =		srcs/main.cpp \
-			srcs/parser.cpp \
+			srcs/obj_parser.cpp \
+			srcs/parsing.cpp \
+			srcs/window.cpp
 
 OBJS =		$(SRCS:%.cpp=%.o)
 
@@ -31,9 +33,8 @@ build:
 	@docker build -t scop_image .
 
 destroy:
-	@docker rmi abstract_vm_image
-
+	@docker rmi scop_image
 
 # Target to format code using Docker
 format:
-	@docker run --rm -v $(PWD):/usr/src/app abstract_vm_image clang-format -i srcs/*.cpp includes/*.hpp
+	@docker run --rm -v $(PWD):/usr/src/app scop_image clang-format -i srcs/*.cpp includes/*.hpp
