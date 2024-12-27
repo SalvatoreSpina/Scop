@@ -22,9 +22,7 @@ clean:
 fclean:		clean
 	@$(RM) $(NAME)
 
-re:	
-	@make fclean
-	@make all
+re:		fclean all
 
 sanitize:
 	@$(COMP) $(CPPFLAGS) $(LDFLAGS) -g -fsanitize=address $(SRCS) -o $(NAME)

@@ -4,6 +4,10 @@
 #include <iostream>
 #include <string>
 
+constexpr int kDefaultWidth = 960;
+constexpr int kDefaultHeight = 540;
+constexpr char kDefaultTitle[] = "OpenGL Window";
+
 /**
  * @brief Program entry point.
  *
@@ -16,19 +20,18 @@ int main(int argc, char **argv) {
 
   // 1. Parse command-line arguments and load the model
   if (!parseArguments(argc, argv, model)) {
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // 2. Initialize GLFW
   if (!initializeGLFW()) {
-    return 1;
+    return EXIT_FAILURE;
   }
 
   // 3. Create the window
-  GLFWwindow *window = createWindow(960, 540, "Scop");
+  GLFWwindow *window = createWindow(kDefaultWidth, kDefaultHeight, kDefaultTitle);
   if (!window) {
-    return 1; // createWindow() already printed the error and called
-              // glfwTerminate()
+    return EXIT_FAILURE;
   }
 
   // 4. Make the context current AFTER the window has been created
@@ -41,5 +44,5 @@ int main(int argc, char **argv) {
   glfwDestroyWindow(window);
   glfwTerminate();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
