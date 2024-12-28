@@ -31,6 +31,10 @@ bool parseArguments(int argc, char **argv, OBJModel &model) {
 
   // The user-provided .obj file path
   const std::string filePath = argv[1];
+  if (filePath.substr(filePath.size() - 4) != ".obj") {
+    std::cerr << "Invalid file extension. Please provide a .obj file.\n";
+    return false;
+  }
   std::cerr << "Loading OBJ file: " << filePath << "\n";
 
   // Attempt to load the OBJ file
