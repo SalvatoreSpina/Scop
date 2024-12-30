@@ -1,46 +1,36 @@
-#include "parsing.hpp"
-#include "obj_parser.hpp"
-#include "scop.hpp"
+#include "ArgumentParser.hpp"
 
-#include <iostream>
-
-/**
- * @brief Prints usage instructions for the program.
- *
- * @param programName Name of the executable.
- */
-void printUsage(const char *programName) {
+void Parser::printUsage(const char* programName) {
   std::cerr << "Usage: " << programName << " <path/to/your/model.obj>\n";
 }
 
-/**
- * @brief Parses the command-line arguments, loads the OBJ model if valid.
- *
- * @param argc   Number of command-line arguments.
- * @param argv   Command-line argument values.
- * @param model  Reference to an OBJModel to be filled on success.
- * @return true  If the model is loaded successfully.
- * @return false Otherwise.
- */
-bool parseArguments(int argc, char **argv, OBJModel &model) {
+Parser::Parser(int argc, char** argv, OBJModel& model) {
+  parseArguments(argc, argv, model);
+}
+
+bool Parser::getSuccess() const {
+  return this->success;
+}
+
+void Parser::parseArguments(int argc, char** argv, OBJModel& model) {
   // We expect exactly one argument for the path to the .obj file.
   if (argc != 2) {
     printUsage(argv[0]);
-    return false;
+    return;
   }
 
   // The user-provided .obj file path
   const std::string filePath = argv[1];
   if (filePath.substr(filePath.size() - 4) != ".obj") {
     std::cerr << "Invalid file extension. Please provide a .obj file.\n";
-    return false;
+    return;
   }
   std::cerr << "Loading OBJ file: " << filePath << "\n";
 
   // Attempt to load the OBJ file
-  if (!loadOBJ(filePath, model)) {
+  if (!OBJLoader::loadOBJ(filePath, model)) {
     std::cerr << "Failed to load OBJ file.\n";
-    return false;
+    return;
   }
 
   // If successful, print some stats
@@ -50,5 +40,5 @@ bool parseArguments(int argc, char **argv, OBJModel &model) {
   std::cout << "Normals:        " << model.normals.size() << "\n";
   std::cout << "Faces:          " << model.faces.size() << "\n";
 
-  return true;
+  this->success = true;
 }
