@@ -15,6 +15,12 @@ private:
   void initializeGL();
   void renderFrame(const OBJModel &model);
 
+  void computeModelCenter(const OBJModel &model);
+
+  static void scrollCallback(GLFWwindow *window, double xoffset,
+                             double yoffset);
+  void onScroll(double xoffset, double yoffset);
+
 private:
   GLFWwindow *m_window;
   int m_width;
@@ -22,4 +28,6 @@ private:
 
   Camera m_camera;
   float m_rotationAngle;
+
+  Matrix4 m_modelTranslation;
 };

@@ -2,14 +2,15 @@ NAME        := scop
 
 CXX         := g++
 CXXFLAGS    := -Wall -Werror -Wextra -std=c++20 -Iincludes -Ilibs/glew/include
+SANFLAGS    := -fsanitize=address -g
 
 LDFLAGS     := -Llibs/glew/lib64 -lGLEW -lGL -lglfw -Wl,-rpath,libs/glew/lib64
 
 SRCS        := main.cpp \
-			   srcs/ArgumentParser.cpp \
+               srcs/ArgumentParser.cpp \
                srcs/OBJLoader.cpp \
                srcs/window.cpp \
-			   srcs/Renderer.cpp \
+               srcs/Renderer.cpp
 
 OBJS        := $(SRCS:.cpp=.o)
 
@@ -17,7 +18,7 @@ GLEW_URL    := https://sourceforge.net/projects/glew/files/glew/2.2.0/glew-2.2.0
 GLEW_DIR    := libs/glew
 GLEW_TGZ    := glew.tgz
 
-.PHONY: all clean fclean re glew
+.PHONY: all clean fclean re glew sanitize
 
 all: $(NAME)
 
@@ -45,15 +46,14 @@ clean:
 	@rm -f $(OBJS)
 
 fclean: clean
-	@echo "Removing final binary and GLEW libs..."
+	@echo "Removing final binary..."
 	@rm -f $(NAME)
-	@rm -rf $(GLEW_DIR)
 
 re: fclean all
 
-sanitize:
-	@$(COMP) $(CPPFLAGS) $(LDFLAGS) -g -fsanitize=address $(SRCS) -o $(NAME)
-
+%.sanitize.o: %.cpp
+	@echo "Compiling $< with Address Sanitizer..."
+	@$(CXX) $(CXXFLAGS) $(SANFLAGS) -c $< -o $@
 
 build:
 	@docker build -t scop_image .
