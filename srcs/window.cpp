@@ -1,4 +1,5 @@
 #include "window.hpp"
+#include "scop.hpp"
 
 #include <iostream>
 
@@ -38,10 +39,11 @@ GLFWwindow *createWindow(int width, int height, const char *title) {
  *
  * @param window Valid pointer to a GLFW window.
  */
-void mainLoop(GLFWwindow *window) {
+void mainLoop(GLFWwindow *window, const OBJModel &model) {
   // Loop until the user closes the window
   while (!glfwWindowShouldClose(window)) {
     // TODO: Render
+    // Draw model
 
     // Swap front and back buffers
     glfwSwapBuffers(window);

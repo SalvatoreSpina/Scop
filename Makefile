@@ -1,31 +1,58 @@
-NAME =		scop
+NAME        := scop
 
-COMP =		c++
-CPPFLAGS =	-Wall -Werror -Wextra -std=c++20 -Iincludes #-g -fsanitize=address
-LDFLAGS = -lGL -lglfw
+CXX         := g++
+CXXFLAGS    := -Wall -Werror -Wextra -std=c++20 -Iincludes -Ilibs/glew/include
 
-SRCS =		srcs/main.cpp \
-			srcs/obj_parser.cpp \
-			srcs/parsing.cpp \
-			srcs/window.cpp
+LDFLAGS     := -Llibs/glew/lib64 -lGLEW -lGL -lglfw -Wl,-rpath,libs/glew/lib64
 
-OBJS =		$(SRCS:%.cpp=%.o)
+SRCS        := srcs/main.cpp \
+               srcs/obj_parser.cpp \
+               srcs/parsing.cpp \
+               srcs/window.cpp
+
+OBJS        := $(SRCS:.cpp=.o)
+
+GLEW_URL    := https://sourceforge.net/projects/glew/files/glew/2.2.0/glew-2.2.0.tgz
+GLEW_DIR    := libs/glew
+GLEW_TGZ    := glew.tgz
+
+.PHONY: all clean fclean re glew
 
 all: $(NAME)
 
-$(NAME):	$(OBJS)
-	@$(COMP) $(CPPFLAGS) $(LDFLAGS) $^ -o $@
+$(NAME): glew $(OBJS)
+	@$(CXX) $(OBJS) $(CXXFLAGS) $(LDFLAGS) -o $@
+	@echo "Linking complete -> $(NAME)"
+
+glew:
+	@mkdir -p $(GLEW_DIR)
+	@if [ ! -d "$(GLEW_DIR)/include" ]; then \
+		echo "Downloading and building GLEW..."; \
+		curl -L $(GLEW_URL) -o $(GLEW_TGZ); \
+		mkdir -p $(GLEW_DIR)/src; \
+		tar -xzf $(GLEW_TGZ) --strip-components=1 -C $(GLEW_DIR)/src; \
+		rm $(GLEW_TGZ); \
+		cd $(GLEW_DIR)/src && make GLEW_DEST=.. install; \
+	fi
+
+%.o: %.cpp
+	@echo "Compiling $<..."
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	@$(RM) $(OBJS)
+	@echo "Removing object files..."
+	@rm -f $(OBJS)
 
-fclean:		clean
-	@$(RM) $(NAME)
+fclean: clean
+	@echo "Removing final binary and GLEW libs..."
+	@rm -f $(NAME)
+	@rm -rf $(GLEW_DIR)
 
-re:		fclean all
+re: fclean all
 
 sanitize:
 	@$(COMP) $(CPPFLAGS) $(LDFLAGS) -g -fsanitize=address $(SRCS) -o $(NAME)
+
 
 build:
 	@docker build -t scop_image .
@@ -33,6 +60,5 @@ build:
 destroy:
 	@docker rmi scop_image
 
-# Target to format code using Docker
 format:
 	@docker run --rm -v $(PWD):/usr/src/app scop_image clang-format -i srcs/*.cpp includes/*.hpp

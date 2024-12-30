@@ -4,8 +4,8 @@
 #include <iostream>
 #include <string>
 
-constexpr int kDefaultWidth = 960;
-constexpr int kDefaultHeight = 540;
+constexpr int kDefaultWidth = 1920;
+constexpr int kDefaultHeight = 1080;
 constexpr char kDefaultTitle[] = "OpenGL Window";
 
 /**
@@ -29,7 +29,8 @@ int main(int argc, char **argv) {
   }
 
   // 3. Create the window
-  GLFWwindow *window = createWindow(kDefaultWidth, kDefaultHeight, kDefaultTitle);
+  GLFWwindow *window =
+      createWindow(kDefaultWidth, kDefaultHeight, kDefaultTitle);
   if (!window) {
     return EXIT_FAILURE;
   }
@@ -38,7 +39,7 @@ int main(int argc, char **argv) {
   glfwMakeContextCurrent(window);
 
   // 5. Start the rendering/main loop
-  mainLoop(window);
+  mainLoop(window, model);
 
   // 6. Clean up GLFW
   glfwDestroyWindow(window);
