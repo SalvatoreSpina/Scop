@@ -10,11 +10,11 @@ bool WindowManager::initializeGLFW() {
   return true;
 }
 
-GLFWwindow* WindowManager::createWindow(Window windowConfig) {
+GLFWwindow *WindowManager::createWindow(Window windowConfig) {
   int width = windowConfig.width;
   int height = windowConfig.height;
-  const char* title = windowConfig.title;
-  GLFWwindow* window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+  const char *title = windowConfig.title;
+  GLFWwindow *window = glfwCreateWindow(width, height, title, nullptr, nullptr);
   if (!window) {
     std::cerr << "Failed to create GLFW window.\n";
     glfwTerminate();
@@ -22,7 +22,7 @@ GLFWwindow* WindowManager::createWindow(Window windowConfig) {
   return window;
 }
 
-void WindowManager::mainLoop(GLFWwindow* window, const OBJModel& model) {
+void WindowManager::mainLoop(GLFWwindow *window, const OBJModel &model) {
   Camera camera;
   camera.eye = Vector3(0.0f, 0.0f, 5.0f);
   camera.center = Vector3(0.0f, 0.0f, 0.0f);
@@ -58,10 +58,10 @@ void WindowManager::mainLoop(GLFWwindow* window, const OBJModel& model) {
         Matrix4::multiply(camera.getViewMatrix(), modelRotation);
     glLoadMatrixf(finalModelView.m);
 
-    for (const Face& face : model.faces) {
+    for (const Face &face : model.faces) {
       glBegin(GL_POLYGON);
-      for (const FaceVertex& vertex : face.vertices) {
-        const Vertex& v = model.vertices[vertex.vertexIndex];
+      for (const FaceVertex &vertex : face.vertices) {
+        const Vertex &v = model.vertices[vertex.vertexIndex];
         glVertex3f(v.x, v.y, v.z);
       }
       glEnd();

@@ -3,10 +3,8 @@
 #include <cmath>
 #include <stdexcept>
 
-Renderer::Renderer(GLFWwindow* window, int width, int height)
-    : m_window(window),
-      m_width(width),
-      m_height(height),
+Renderer::Renderer(GLFWwindow *window, int width, int height)
+    : m_window(window), m_width(width), m_height(height),
       m_rotationAngle(0.0f) {
   if (!m_window) {
     throw std::runtime_error("Renderer received a null GLFWwindow*!");
@@ -47,7 +45,7 @@ void Renderer::initializeGL() {
   glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
 }
 
-void Renderer::run(const OBJModel& model) {
+void Renderer::run(const OBJModel &model) {
   // Main loop
   while (!glfwWindowShouldClose(m_window)) {
     renderFrame(model);
@@ -60,7 +58,7 @@ void Renderer::run(const OBJModel& model) {
   }
 }
 
-void Renderer::renderFrame(const OBJModel& model) {
+void Renderer::renderFrame(const OBJModel &model) {
   // Clear color and depth
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -80,7 +78,7 @@ void Renderer::renderFrame(const OBJModel& model) {
   auto view = m_camera.getViewMatrix();
 
   // Simple rotation around Y-axis
-  m_rotationAngle += 0.5f;  // degrees per frame
+  m_rotationAngle += 0.5f; // degrees per frame
   float radians = m_rotationAngle * 3.1415926535f / 180.0f;
 
   // Build a rotation matrix manually
@@ -98,11 +96,11 @@ void Renderer::renderFrame(const OBJModel& model) {
   // -----------------
   // 3) Draw the model
   // -----------------
-  for (const Face& face : model.faces) {
+  for (const Face &face : model.faces) {
     // We'll assume polygon faces
     glBegin(GL_POLYGON);
-    for (const FaceVertex& fv : face.vertices) {
-      const Vertex& v = model.vertices[fv.vertexIndex];
+    for (const FaceVertex &fv : face.vertices) {
+      const Vertex &v = model.vertices[fv.vertexIndex];
 
       // OPTIONAL: set color here if you want, e.g. per-face or per-vertex
       // glColor3f(...);

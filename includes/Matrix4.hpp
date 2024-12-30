@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cmath>    // for tanf
-#include <cstring>  // for memset
+#include <cmath>   // for tanf
+#include <cstring> // for memset
 
 #include "Vector3.hpp"
 
@@ -21,7 +21,7 @@ struct Matrix4 {
   }
 
   // Multiply two Matrix4 (this * rhs), result stored in 'out'.
-  static Matrix4 multiply(const Matrix4& lhs, const Matrix4& rhs) {
+  static Matrix4 multiply(const Matrix4 &lhs, const Matrix4 &rhs) {
     Matrix4 out;
     for (int row = 0; row < 4; ++row) {
       for (int col = 0; col < 4; ++col) {
@@ -37,11 +37,11 @@ struct Matrix4 {
 
   /// Creates a "look-at" view matrix, from an eye position,
   /// looking at a center position, with a given up vector.
-  static Matrix4 lookAt(const Vector3& eye, const Vector3& center,
-                        const Vector3& up) {
-    Vector3 f = (center - eye).normalize();  // forward
-    Vector3 s = f.cross(up).normalize();     // right
-    Vector3 u = s.cross(f);                  // true up
+  static Matrix4 lookAt(const Vector3 &eye, const Vector3 &center,
+                        const Vector3 &up) {
+    Vector3 f = (center - eye).normalize(); // forward
+    Vector3 s = f.cross(up).normalize();    // right
+    Vector3 u = s.cross(f);                 // true up
 
     Matrix4 view;
     // clang-format off
@@ -67,8 +67,8 @@ struct Matrix4 {
     float fovyRad = fovy * 3.1415926535f / 180.0f;
     float f = 1.0f / std::tan(fovyRad / 2.0f);
 
-    proj.m[0] = f / aspect;  // scale the x coordinates
-    proj.m[5] = f;           // scale the y coordinates
+    proj.m[0] = f / aspect; // scale the x coordinates
+    proj.m[5] = f;          // scale the y coordinates
     proj.m[10] = (farZ + nearZ) / (nearZ - farZ);
     proj.m[11] = -1.0f;
     proj.m[14] = (2.0f * farZ * nearZ) / (nearZ - farZ);

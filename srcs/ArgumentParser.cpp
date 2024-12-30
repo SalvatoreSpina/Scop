@@ -1,18 +1,16 @@
 #include "ArgumentParser.hpp"
 
-void Parser::printUsage(const char* programName) {
+void Parser::printUsage(const char *programName) {
   std::cerr << "Usage: " << programName << " <path/to/your/model.obj>\n";
 }
 
-Parser::Parser(int argc, char** argv, OBJModel& model) {
+Parser::Parser(int argc, char **argv, OBJModel &model) {
   parseArguments(argc, argv, model);
 }
 
-bool Parser::getSuccess() const {
-  return this->success;
-}
+bool Parser::getSuccess() const { return this->success; }
 
-void Parser::parseArguments(int argc, char** argv, OBJModel& model) {
+void Parser::parseArguments(int argc, char **argv, OBJModel &model) {
   // We expect exactly one argument for the path to the .obj file.
   if (argc != 2) {
     printUsage(argv[0]);

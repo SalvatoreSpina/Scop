@@ -7,7 +7,7 @@
 #include <string>
 
 class Parser {
- private:
+private:
   bool success = false;
 
   /**
@@ -15,9 +15,9 @@ class Parser {
    *
    * @param programName Name of the executable.
    */
-  void printUsage(const char* programName);
+  void printUsage(const char *programName);
 
- public:
+public:
   /**
    * @brief Constructor for the Parser class.
    *
@@ -25,7 +25,7 @@ class Parser {
    * @param argv   Command-line argument values.
    * @param model  Reference to an OBJModel to be filled on success.
    */
-  Parser(int argc, char** argv, OBJModel& model);
+  Parser(int argc, char **argv, OBJModel &model);
 
   /**
    * @brief Gets the success state of the parsing process.
@@ -41,5 +41,5 @@ class Parser {
    * @param argv   Command-line argument values.
    * @param model  Reference to an OBJModel to be filled on success.
    */
-  void parseArguments(int argc, char** argv, OBJModel& model);
+  void parseArguments(int argc, char **argv, OBJModel &model);
 };

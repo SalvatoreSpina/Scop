@@ -1,6 +1,6 @@
 #include "OBJLoader.hpp"
 
-FaceVertex OBJLoader::parseFaceVertex(const std::string& vertexStr) {
+FaceVertex OBJLoader::parseFaceVertex(const std::string &vertexStr) {
   FaceVertex fv = {-1, -1, -1};
 
   size_t pos1 = vertexStr.find('/');
@@ -38,13 +38,13 @@ FaceVertex OBJLoader::parseFaceVertex(const std::string& vertexStr) {
   return fv;
 }
 
-void OBJLoader::parseVertex(std::istringstream& ss, OBJModel& model) {
+void OBJLoader::parseVertex(std::istringstream &ss, OBJModel &model) {
   Vertex vertex;
   ss >> vertex.x >> vertex.y >> vertex.z;
   model.vertices.push_back(vertex);
 }
 
-void OBJLoader::parseTexCoord(std::istringstream& ss, OBJModel& model) {
+void OBJLoader::parseTexCoord(std::istringstream &ss, OBJModel &model) {
   TexCoord texCoord;
   ss >> texCoord.u >> texCoord.v;
   if (!(ss >> texCoord.w)) {
@@ -53,13 +53,13 @@ void OBJLoader::parseTexCoord(std::istringstream& ss, OBJModel& model) {
   model.texCoords.push_back(texCoord);
 }
 
-void OBJLoader::parseNormal(std::istringstream& ss, OBJModel& model) {
+void OBJLoader::parseNormal(std::istringstream &ss, OBJModel &model) {
   Normal normal;
   ss >> normal.x >> normal.y >> normal.z;
   model.normals.push_back(normal);
 }
 
-void OBJLoader::parseFace(std::istringstream& ss, OBJModel& model) {
+void OBJLoader::parseFace(std::istringstream &ss, OBJModel &model) {
   Face face;
   std::string vertexStr;
   while (ss >> vertexStr) {
@@ -68,7 +68,7 @@ void OBJLoader::parseFace(std::istringstream& ss, OBJModel& model) {
   model.faces.push_back(face);
 }
 
-bool OBJLoader::parseLine(const std::string& line, OBJModel& model) {
+bool OBJLoader::parseLine(const std::string &line, OBJModel &model) {
   std::istringstream ss(line);
   std::string prefix;
   ss >> prefix;
@@ -90,7 +90,7 @@ bool OBJLoader::parseLine(const std::string& line, OBJModel& model) {
   return true;
 }
 
-bool OBJLoader::loadOBJ(const std::string& filePath, OBJModel& model) {
+bool OBJLoader::loadOBJ(const std::string &filePath, OBJModel &model) {
   std::ifstream inFile(filePath);
   if (!inFile) {
     std::cerr << "Cannot open the .obj file: " << filePath << std::endl;

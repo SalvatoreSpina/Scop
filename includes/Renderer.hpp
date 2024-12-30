@@ -1,22 +1,22 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
 #include "Camera.hpp"
 #include "OBJModel.hpp"
+#include <GLFW/glfw3.h>
 
 class Renderer {
- public:
-  Renderer(GLFWwindow* window, int width, int height);
+public:
+  Renderer(GLFWwindow *window, int width, int height);
   ~Renderer();
 
-  void run(const OBJModel& model);
+  void run(const OBJModel &model);
 
- private:
+private:
   void initializeGL();
-  void renderFrame(const OBJModel& model);
+  void renderFrame(const OBJModel &model);
 
- private:
-  GLFWwindow* m_window;
+private:
+  GLFWwindow *m_window;
   int m_width;
   int m_height;
 

@@ -9,7 +9,7 @@
  * @param argv Command-line arguments.
  * @return int Exit code.
  */
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   OBJModel model;
 
   // 1. Parse command-line arguments & load the model
