@@ -5,10 +5,11 @@ CXXFLAGS    := -Wall -Werror -Wextra -std=c++20 -Iincludes -Ilibs/glew/include
 
 LDFLAGS     := -Llibs/glew/lib64 -lGLEW -lGL -lglfw -Wl,-rpath,libs/glew/lib64
 
-SRCS        := srcs/main.cpp \
-               srcs/obj_parser.cpp \
-               srcs/parsing.cpp \
-               srcs/window.cpp
+SRCS        := main.cpp \
+			   srcs/ArgumentParser.cpp \
+               srcs/OBJLoader.cpp \
+               srcs/window.cpp \
+			   srcs/Renderer.cpp \
 
 OBJS        := $(SRCS:.cpp=.o)
 
