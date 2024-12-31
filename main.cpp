@@ -11,6 +11,7 @@
  */
 int main(int argc, char **argv) {
   OBJModel model;
+  glutInit(&argc, argv);
 
   // 1. Parse command-line arguments & load the model
   Parser argumentParser(argc, argv, model);

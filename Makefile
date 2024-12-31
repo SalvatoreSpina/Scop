@@ -4,7 +4,7 @@ CXX         := g++
 CXXFLAGS    := -Wall -Werror -Wextra -std=c++20 -Iincludes -Ilibs/glew/include
 SANFLAGS    := -fsanitize=address -g
 
-LDFLAGS     := -Llibs/glew/lib64 -lGLEW -lGL -lglfw -Wl,-rpath,libs/glew/lib64
+LDFLAGS     := -Llibs/glew/lib64 -lGLEW -lGL -lglut -lglfw -Wl,-rpath,libs/glew/lib64
 
 SRCS        := main.cpp \
                srcs/ArgumentParser.cpp \
