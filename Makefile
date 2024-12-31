@@ -51,10 +51,6 @@ fclean: clean
 
 re: fclean all
 
-%.sanitize.o: %.cpp
-	@echo "Compiling $< with Address Sanitizer..."
-	@$(CXX) $(CXXFLAGS) $(SANFLAGS) -c $< -o $@
-
 build:
 	@docker build -t scop_image .
 
