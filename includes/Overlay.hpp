@@ -4,6 +4,17 @@
 #include <string>
 
 /**
+ * @brief Different ways to color or texture the 3D model.
+ */
+enum class RenderMode {
+  GRAYSCALE = 0,
+  RANDOM_COLOR,
+  MATERIAL_COLOR,
+  TEXTURE,
+  COUNT // Not a mode, just to help us cycle
+};
+
+/**
  * @brief Handles rendering of overlay text (HUD) on the screen.
  */
 class Overlay {
@@ -26,6 +37,7 @@ public:
    * @brief Renders the overlay text.
    * @param cameraInfo Information about the camera to display.
    * @param currentMode Current rendering mode.
+   * @param totalModes Total number of rendering modes.
    */
   void render(const std::string &cameraInfo, int currentMode, int totalModes);
 

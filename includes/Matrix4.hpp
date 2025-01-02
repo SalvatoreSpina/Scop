@@ -13,14 +13,14 @@ struct Matrix4 {
 
   void setIdentity() {
     // clang-format off
-        m[0] = 1;  m[1] = 0;  m[2] = 0;  m[3] = 0;
-        m[4] = 0;  m[5] = 1;  m[6] = 0;  m[7] = 0;
-        m[8] = 0;  m[9] = 0;  m[10] = 1; m[11] = 0;
-        m[12] = 0; m[13] = 0; m[14] = 0; m[15] = 1;
+            m[0] = 1;  m[1] = 0;  m[2] = 0;  m[3] = 0;
+            m[4] = 0;  m[5] = 1;  m[6] = 0;  m[7] = 0;
+            m[8] = 0;  m[9] = 0;  m[10] = 1; m[11] = 0;
+            m[12] = 0; m[13] = 0; m[14] = 0; m[15] = 1;
     // clang-format on
   }
 
-  // Multiply two Matrix4 (this * rhs), result stored in 'out'.
+  // Multiply two Matrix4 (lhs * rhs), result stored in 'out'.
   static Matrix4 multiply(const Matrix4 &lhs, const Matrix4 &rhs) {
     Matrix4 out;
     for (int row = 0; row < 4; ++row) {
@@ -45,10 +45,22 @@ struct Matrix4 {
 
     Matrix4 view;
     // clang-format off
-        view.m[0] = s.x;   view.m[4] = s.y;   view.m[8]  = s.z;   view.m[12] = -eye.dot(s);
-        view.m[1] = u.x;   view.m[5] = u.y;   view.m[9]  = u.z;   view.m[13] = -eye.dot(u);
-        view.m[2] = -f.x;  view.m[6] = -f.y;  view.m[10] = -f.z;  view.m[14] =  eye.dot(f);
-        view.m[3] = 0;     view.m[7] = 0;     view.m[11] = 0;     view.m[15] = 1;
+            view.m[0] = s.x;
+            view.m[1] = u.x;
+            view.m[2] = -f.x;
+            view.m[4] = s.y;
+            view.m[5] = u.y;
+            view.m[6] = -f.y;
+            view.m[8] = s.z;
+            view.m[9] = u.z;
+            view.m[10] = -f.z;
+            view.m[12] = -s.dot(eye);
+            view.m[13] = -u.dot(eye);
+            view.m[14] = f.dot(eye);
+            view.m[3] = 0;
+            view.m[7] = 0;
+            view.m[11] = 0;
+            view.m[15] = 1;
     // clang-format on
 
     return view;
@@ -75,5 +87,25 @@ struct Matrix4 {
     proj.m[15] = 0.0f;
 
     return proj;
+  }
+
+  /**
+   * @brief Transforms a Vector3 using this Matrix4.
+   * @param v The vector to transform.
+   * @return Transformed Vector3.
+   */
+  Vector3 transform(const Vector3 &v) const {
+    float x = m[0] * v.x + m[4] * v.y + m[8] * v.z + m[12];
+    float y = m[1] * v.x + m[5] * v.y + m[9] * v.z + m[13];
+    float z = m[2] * v.x + m[6] * v.y + m[10] * v.z + m[14];
+    float w = m[3] * v.x + m[7] * v.y + m[11] * v.z + m[15];
+
+    if (w != 0.0f) {
+      x /= w;
+      y /= w;
+      z /= w;
+    }
+
+    return Vector3(x, y, z);
   }
 };

@@ -11,17 +11,6 @@
 #include <vector>
 
 /**
- * @brief Different ways to color or texture the 3D model.
- */
-enum class RenderMode {
-  GRAYSCALE = 0,
-  RANDOM_COLOR,
-  MATERIAL_COLOR,
-  TEXTURE,
-  COUNT // Not a mode, just to help us cycle
-};
-
-/**
  * @brief Handles OpenGL rendering, user input, and interaction.
  */
 class Renderer {
@@ -80,6 +69,10 @@ private:
    */
   void updateOverlayWindowSize();
 
+  // Free Camera Controls
+  void handleFreeCameraMovement(float deltaTime);
+  void handleFreeCameraRotation(float deltaTime);
+
 private:
   GLFWwindow *m_window;
   int m_width;
@@ -113,4 +106,22 @@ private:
 
   // Overlay
   Overlay m_overlay;
+
+  // Camera Mode Flag
+  bool m_freeCameraMode;
+
+  // Timing for smooth movement
+  double m_lastFrameTime;
+
+  // Movement flags
+  bool m_moveForward;
+  bool m_moveBackward;
+  bool m_moveLeft;
+  bool m_moveRight;
+  bool m_moveUp;
+  bool m_moveDown;
+
+  // Rotation deltas
+  float m_yawDelta;
+  float m_pitchDelta;
 };

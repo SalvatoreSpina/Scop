@@ -20,6 +20,14 @@ struct Vector3 {
     return Vector3(x * scalar, y * scalar, z * scalar);
   }
 
+  // Overload operator+=
+  Vector3 &operator+=(const Vector3 &rhs) {
+    x += rhs.x;
+    y += rhs.y;
+    z += rhs.z;
+    return *this;
+  }
+
   float dot(const Vector3 &rhs) const {
     return x * rhs.x + y * rhs.y + z * rhs.z;
   }

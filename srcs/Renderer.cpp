@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <random>
+#include <sstream>
 #include <vector>
 
 /**
@@ -16,7 +17,10 @@
 Renderer::Renderer(GLFWwindow *window, int width, int height)
     : m_window(window), m_width(width), m_height(height), m_rotationAngle(0.0f),
       m_rotationSpeed(0.5f), m_currentMode(RenderMode::GRAYSCALE),
-      m_textureID(0), m_overlay(width, height) {
+      m_textureID(0), m_overlay(width, height), m_freeCameraMode(false),
+      m_lastFrameTime(0.0), m_moveForward(false), m_moveBackward(false),
+      m_moveLeft(false), m_moveRight(false), m_moveUp(false), m_moveDown(false),
+      m_yawDelta(0.0f), m_pitchDelta(0.0f) {
   if (!m_window) {
     throw std::runtime_error("Renderer received a null GLFWwindow*!");
   }
@@ -25,9 +29,9 @@ Renderer::Renderer(GLFWwindow *window, int width, int height)
   initializeGL();
 
   // Setup default camera
-  m_camera.eye = {0.0f, 0.0f, 5.0f};
-  m_camera.center = {0.0f, 0.0f, 0.0f};
-  m_camera.up = {0.0f, 1.0f, 0.0f};
+  m_camera.eye = Vector3(0.0f, 0.0f, 5.0f);
+  m_camera.center = Vector3(0.0f, 0.0f, 0.0f);
+  m_camera.up = Vector3(0.0f, 1.0f, 0.0f);
 
   m_camera.fovy = 45.0f;
   m_camera.aspectRatio =
@@ -84,6 +88,7 @@ void Renderer::initializeGL() {
 
 /**
  * @brief Runs the main rendering loop.
+ * @param model The OBJ model to render.
  */
 void Renderer::run(const OBJModel &model) {
   // Center the model
@@ -115,8 +120,22 @@ void Renderer::run(const OBJModel &model) {
     }
   }
 
+  // Initialize timing
+  m_lastFrameTime = glfwGetTime();
+
   // Main rendering loop
   while (!glfwWindowShouldClose(m_window)) {
+    // Calculate delta time
+    double currentTime = glfwGetTime();
+    float deltaTime = static_cast<float>(currentTime - m_lastFrameTime);
+    m_lastFrameTime = currentTime;
+
+    // Handle free camera movement
+    if (m_freeCameraMode) {
+      handleFreeCameraMovement(deltaTime);
+      handleFreeCameraRotation(deltaTime);
+    }
+
     renderFrame(model);
     glfwSwapBuffers(m_window);
     glfwPollEvents();
@@ -139,36 +158,47 @@ void Renderer::renderFrame(const OBJModel &model) {
   // Setup modelview
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  Matrix4 view = m_camera.getViewMatrix();
 
-  // Apply rotation
-  m_rotationAngle += m_rotationSpeed;
-  float radians = m_rotationAngle * 3.1415926535f / 180.0f;
-  Matrix4 rotation;
-  rotation.setIdentity();
-  rotation.m[0] = cosf(radians);
-  rotation.m[2] = sinf(radians);
-  rotation.m[8] = -sinf(radians);
-  rotation.m[10] = cosf(radians);
+  // Determine view matrix based on camera mode
+  Matrix4 view;
+  if (m_freeCameraMode) {
+    view = m_camera.getViewMatrix(true); // Free Camera Mode
+  } else {
+    view = m_camera.getViewMatrix(false); // Focus Mode
+  }
+  glLoadMatrixf(view.m);
 
-  Matrix4 modelMatrix = Matrix4::multiply(rotation, m_modelTranslation);
-  Matrix4 modelView = Matrix4::multiply(view, modelMatrix);
-  glLoadMatrixf(modelView.m);
+  // Apply rotation (only in Focus Mode)
+  if (!m_freeCameraMode) {
+    m_rotationAngle += m_rotationSpeed;
+    float radians = m_rotationAngle * 3.1415926535f / 180.0f;
+    Matrix4 rotation;
+    rotation.setIdentity();
+    rotation.m[0] = cosf(radians);
+    rotation.m[2] = sinf(radians);
+    rotation.m[8] = -sinf(radians);
+    rotation.m[10] = cosf(radians);
+
+    Matrix4 modelMatrix = Matrix4::multiply(rotation, m_modelTranslation);
+    Matrix4 modelView = Matrix4::multiply(view, modelMatrix);
+    glLoadMatrixf(modelView.m);
+  }
 
   // Draw the model based on current mode
   drawAllFaces(model);
 
   // Prepare camera information string
-  char cameraInfo[256];
-  snprintf(cameraInfo, sizeof(cameraInfo),
-           "Camera Eye: (%.2f, %.2f, %.2f)\n"
-           "Camera Center: (%.2f, %.2f, %.2f)\n"
-           "Camera Up: (%.2f, %.2f, %.2f)\n"
-           "FOV: %.2f deg\n"
-           "Rotation Speed: %.2f deg/frame",
-           m_camera.eye.x, m_camera.eye.y, m_camera.eye.z, m_camera.center.x,
-           m_camera.center.y, m_camera.center.z, m_camera.up.x, m_camera.up.y,
-           m_camera.up.z, m_camera.fovy, m_rotationSpeed);
+  std::stringstream cameraInfoStream;
+  cameraInfoStream << "Camera Eye: (" << m_camera.eye.x << ", "
+                   << m_camera.eye.y << ", " << m_camera.eye.z << ")\n"
+                   << "Camera Center: (" << m_camera.center.x << ", "
+                   << m_camera.center.y << ", " << m_camera.center.z << ")\n"
+                   << "Camera Up: (" << m_camera.up.x << ", " << m_camera.up.y
+                   << ", " << m_camera.up.z << ")\n"
+                   << "FOV: " << m_camera.fovy << " deg\n"
+                   << "Rotation Speed: " << m_rotationSpeed << " deg/frame";
+
+  std::string cameraInfo = cameraInfoStream.str();
 
   // Render overlay
   m_overlay.render(cameraInfo, static_cast<int>(m_currentMode),
@@ -325,45 +355,43 @@ void Renderer::keyCallback(GLFWwindow *window, int key, int scancode,
  * @brief Handles key events for camera movement, rotation speed, mode
  * switching, and reset.
  */
-void Renderer::onKey(int key, int /*scancode*/, int action, int /*mods*/) {
+void Renderer::onKey(int key, int scancode, int action, int mods) {
+  static_cast<void>(scancode); // Unused
+  static_cast<void>(mods);     // Unused
   if (action == GLFW_PRESS || action == GLFW_REPEAT) {
     switch (key) {
-    // Camera movement
-    case GLFW_KEY_UP:
-      m_camera.eye.y += 0.1f;
-      break;
-    case GLFW_KEY_DOWN:
-      m_camera.eye.y -= 0.1f;
-      break;
-    case GLFW_KEY_LEFT:
-      m_camera.eye.x -= 0.1f;
-      break;
-    case GLFW_KEY_RIGHT:
-      m_camera.eye.x += 0.1f;
-      break;
-    case GLFW_KEY_W:
-      m_camera.eye.z -= 0.1f;
-      break;
-    case GLFW_KEY_S:
-      m_camera.eye.z += 0.1f;
-      break;
-
-    // Rotation speed controls
-    case GLFW_KEY_KP_ADD:
-    case GLFW_KEY_EQUAL:
-      m_rotationSpeed += 0.1f;
-      break;
-    case GLFW_KEY_KP_SUBTRACT:
-    case GLFW_KEY_MINUS:
-      m_rotationSpeed -= 0.1f;
-      if (m_rotationSpeed < 0.0f) {
-        m_rotationSpeed = 0.0f;
+    // Toggle Camera Mode
+    case GLFW_KEY_F:
+      m_freeCameraMode = !m_freeCameraMode;
+      if (m_freeCameraMode) {
+        std::cout << "Switched to Free Camera Mode.\n";
+      } else {
+        std::cout << "Switched to Focus Mode.\n";
+        // Reset camera to focus on the model
+        resetToDefaults();
       }
       break;
 
-    // Reset camera and rotation
+    // Rotation speed controls (only in Focus Mode)
+    case GLFW_KEY_KP_ADD:
+    case GLFW_KEY_EQUAL:
+      if (!m_freeCameraMode)
+        m_rotationSpeed += 0.1f;
+      break;
+    case GLFW_KEY_KP_SUBTRACT:
+    case GLFW_KEY_MINUS:
+      if (!m_freeCameraMode) {
+        m_rotationSpeed -= 0.1f;
+        if (m_rotationSpeed < 0.0f) {
+          m_rotationSpeed = 0.0f;
+        }
+      }
+      break;
+
+    // Reset camera and rotation (only in Focus Mode)
     case GLFW_KEY_SPACE:
-      resetToDefaults();
+      if (!m_freeCameraMode)
+        resetToDefaults();
       break;
 
     // Cycle rendering modes
@@ -376,6 +404,93 @@ void Renderer::onKey(int key, int /*scancode*/, int action, int /*mods*/) {
       std::cout << "Switched mode to " << next << std::endl;
       break;
     }
+
+    // Movement controls (only in Free Camera Mode)
+    case GLFW_KEY_W:
+      if (m_freeCameraMode)
+        m_moveForward = true;
+      break;
+    case GLFW_KEY_S:
+      if (m_freeCameraMode)
+        m_moveBackward = true;
+      break;
+    case GLFW_KEY_A:
+      if (m_freeCameraMode)
+        m_moveLeft = true;
+      break;
+    case GLFW_KEY_D:
+      if (m_freeCameraMode)
+        m_moveRight = true;
+      break;
+    case GLFW_KEY_Q:
+      if (m_freeCameraMode)
+        m_moveDown = true;
+      break;
+    case GLFW_KEY_E:
+      if (m_freeCameraMode)
+        m_moveUp = true;
+      break;
+
+    // Rotation controls (only in Free Camera Mode)
+    case GLFW_KEY_LEFT:
+      if (m_freeCameraMode)
+        m_yawDelta = -1.0f; // Rotate left
+      break;
+    case GLFW_KEY_RIGHT:
+      if (m_freeCameraMode)
+        m_yawDelta = 1.0f; // Rotate right
+      break;
+    case GLFW_KEY_UP:
+      if (m_freeCameraMode)
+        m_pitchDelta = 1.0f; // Rotate up
+      break;
+    case GLFW_KEY_DOWN:
+      if (m_freeCameraMode)
+        m_pitchDelta = -1.0f; // Rotate down
+      break;
+
+    default:
+      break;
+    }
+  } else if (action == GLFW_RELEASE) {
+    switch (key) {
+    // Movement controls (only in Free Camera Mode)
+    case GLFW_KEY_W:
+      if (m_freeCameraMode)
+        m_moveForward = false;
+      break;
+    case GLFW_KEY_S:
+      if (m_freeCameraMode)
+        m_moveBackward = false;
+      break;
+    case GLFW_KEY_A:
+      if (m_freeCameraMode)
+        m_moveLeft = false;
+      break;
+    case GLFW_KEY_D:
+      if (m_freeCameraMode)
+        m_moveRight = false;
+      break;
+    case GLFW_KEY_Q:
+      if (m_freeCameraMode)
+        m_moveDown = false;
+      break;
+    case GLFW_KEY_E:
+      if (m_freeCameraMode)
+        m_moveUp = false;
+      break;
+
+    // Rotation controls (only in Free Camera Mode)
+    case GLFW_KEY_LEFT:
+    case GLFW_KEY_RIGHT:
+      if (m_freeCameraMode)
+        m_yawDelta = 0.0f;
+      break;
+    case GLFW_KEY_UP:
+    case GLFW_KEY_DOWN:
+      if (m_freeCameraMode)
+        m_pitchDelta = 0.0f;
+      break;
 
     default:
       break;
@@ -603,4 +718,39 @@ void Renderer::generateWhiteTexture(unsigned int width, unsigned int height) {
 
   std::cout << "Generated a solid white texture (Texture ID: " << m_textureID
             << ", Size: " << width << "x" << height << ")\n";
+}
+
+/**
+ * @brief Handles movement inputs for Free Camera Mode.
+ * @param deltaTime Time elapsed since last frame (for smooth movement).
+ */
+void Renderer::handleFreeCameraMovement(float deltaTime) {
+  float speed = 5.0f * deltaTime; // Adjust speed as necessary
+
+  if (m_moveForward)
+    m_camera.moveForward(speed);
+  if (m_moveBackward)
+    m_camera.moveForward(-speed);
+  if (m_moveRight)
+    m_camera.moveRight(speed);
+  if (m_moveLeft)
+    m_camera.moveRight(-speed);
+  if (m_moveUp)
+    m_camera.moveUp(speed);
+  if (m_moveDown)
+    m_camera.moveUp(-speed);
+}
+
+/**
+ * @brief Handles rotation inputs for Free Camera Mode.
+ * @param deltaTime Time elapsed since last frame (for smooth rotation).
+ */
+void Renderer::handleFreeCameraRotation(float deltaTime) {
+  float rotationSpeed = 90.0f * deltaTime; // Degrees per second
+
+  m_camera.rotate(m_yawDelta * rotationSpeed, m_pitchDelta * rotationSpeed);
+
+  // Reset deltas after applying
+  m_yawDelta = 0.0f;
+  m_pitchDelta = 0.0f;
 }

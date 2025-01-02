@@ -35,9 +35,13 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   float xPos = 10.0f;
   float yPos = m_height - lineHeight - 10; // Start near top
 
-  // Display camera information
-  drawText(xPos, yPos, cameraInfo);
-  yPos -= lineHeight;
+  // Display camera information line by line
+  std::istringstream cameraStream(cameraInfo);
+  std::string line;
+  while (std::getline(cameraStream, line)) {
+    drawText(xPos, yPos, line);
+    yPos -= lineHeight;
+  }
 
   // Display current rendering mode
   std::stringstream ss;
@@ -46,9 +50,34 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   yPos -= lineHeight;
 
   // Instructions
+  if (currentMode <
+      static_cast<int>(RenderMode::COUNT)) { // Ensure mode is valid
+    switch (static_cast<RenderMode>(currentMode)) {
+    case RenderMode::GRAYSCALE:
+      drawText(xPos, yPos, "Mode 0: Grayscale");
+      break;
+    case RenderMode::RANDOM_COLOR:
+      drawText(xPos, yPos, "Mode 1: Random Color");
+      break;
+    case RenderMode::MATERIAL_COLOR:
+      drawText(xPos, yPos, "Mode 2: Material Color");
+      break;
+    case RenderMode::TEXTURE:
+      drawText(xPos, yPos, "Mode 3: Texture");
+      break;
+    default:
+      break;
+    }
+  }
+  yPos -= lineHeight;
+
   drawText(xPos, yPos, "Press 'T' to cycle modes.");
   yPos -= lineHeight;
-  drawText(xPos, yPos, "Drag & drop a BMP texture onto the window.");
+  drawText(xPos, yPos, "Press 'F' to toggle Free Camera Mode.");
+  yPos -= lineHeight;
+  if (currentMode >= 0 && currentMode < static_cast<int>(RenderMode::COUNT)) {
+    // Additional instructions based on mode can be added here if needed
+  }
 
   // Restore previous states
   glEnable(GL_DEPTH_TEST);
