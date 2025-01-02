@@ -1,11 +1,10 @@
 #pragma once
 
-#include <GL/freeglut.h> // For glutBitmapCharacter (overlay text)
-#include <GLFW/glfw3.h>
-
 #include "Camera.hpp"
 #include "Matrix4.hpp"
 #include "OBJModel.hpp"
+#include "Overlay.hpp"
+#include <GLFW/glfw3.h>
 
 #include <array>
 #include <string>
@@ -22,11 +21,28 @@ enum class RenderMode {
   COUNT // Not a mode, just to help us cycle
 };
 
+/**
+ * @brief Handles OpenGL rendering, user input, and interaction.
+ */
 class Renderer {
 public:
+  /**
+   * @brief Constructs a Renderer.
+   * @param window Pointer to the GLFW window.
+   * @param width Initial window width.
+   * @param height Initial window height.
+   */
   Renderer(GLFWwindow *window, int width, int height);
+
+  /**
+   * @brief Destructor: Cleans up resources.
+   */
   ~Renderer();
 
+  /**
+   * @brief Runs the main rendering loop.
+   * @param model The OBJ model to render.
+   */
   void run(const OBJModel &model);
 
 private:
@@ -50,10 +66,6 @@ private:
   // Camera controls
   void resetToDefaults();
 
-  // Overlay (HUD)
-  void renderOverlay();
-  void drawText(float x, float y, const char *text);
-
   // Rendering modes
   void drawAllFaces(const OBJModel &model);
   void setFaceColor(RenderMode mode, size_t faceIndex);
@@ -62,6 +74,11 @@ private:
   GLuint loadBMPTexture(const std::string &filePath);
   void loadTextureFromFile(const std::string &filePath);
   void generateWhiteTexture(unsigned int width, unsigned int height);
+
+  /**
+   * @brief Updates the Overlay with the latest window size.
+   */
+  void updateOverlayWindowSize();
 
 private:
   GLFWwindow *m_window;
@@ -93,4 +110,7 @@ private:
 
   // Texture ID
   GLuint m_textureID;
+
+  // Overlay
+  Overlay m_overlay;
 };

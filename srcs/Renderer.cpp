@@ -16,7 +16,7 @@
 Renderer::Renderer(GLFWwindow *window, int width, int height)
     : m_window(window), m_width(width), m_height(height), m_rotationAngle(0.0f),
       m_rotationSpeed(0.5f), m_currentMode(RenderMode::GRAYSCALE),
-      m_textureID(0) {
+      m_textureID(0), m_overlay(width, height) {
   if (!m_window) {
     throw std::runtime_error("Renderer received a null GLFWwindow*!");
   }
@@ -158,8 +158,21 @@ void Renderer::renderFrame(const OBJModel &model) {
   // Draw the model based on current mode
   drawAllFaces(model);
 
+  // Prepare camera information string
+  char cameraInfo[256];
+  snprintf(cameraInfo, sizeof(cameraInfo),
+           "Camera Eye: (%.2f, %.2f, %.2f)\n"
+           "Camera Center: (%.2f, %.2f, %.2f)\n"
+           "Camera Up: (%.2f, %.2f, %.2f)\n"
+           "FOV: %.2f deg\n"
+           "Rotation Speed: %.2f deg/frame",
+           m_camera.eye.x, m_camera.eye.y, m_camera.eye.z, m_camera.center.x,
+           m_camera.center.y, m_camera.center.z, m_camera.up.x, m_camera.up.y,
+           m_camera.up.z, m_camera.fovy, m_rotationSpeed);
+
   // Render overlay
-  renderOverlay();
+  m_overlay.render(cameraInfo, static_cast<int>(m_currentMode),
+                   static_cast<int>(RenderMode::COUNT));
 }
 
 /**
@@ -590,92 +603,4 @@ void Renderer::generateWhiteTexture(unsigned int width, unsigned int height) {
 
   std::cout << "Generated a solid white texture (Texture ID: " << m_textureID
             << ", Size: " << width << "x" << height << ")\n";
-}
-
-/**
- * @brief Renders the overlay (HUD) with camera info and mode listing.
- */
-void Renderer::renderOverlay() {
-  // Save current projection and modelview matrices
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix();
-  glLoadIdentity();
-  glOrtho(0, m_width, 0, m_height, -1, 1);
-
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix();
-  glLoadIdentity();
-  glDisable(GL_DEPTH_TEST);
-
-  float lineHeight = 18.0f;
-  float xPos = 10.0f;
-  float yPos = m_height - lineHeight - 10; // Start near top
-
-  char buffer[512]; // Increased buffer size to prevent stack smashing
-
-  // Display camera information
-  snprintf(buffer, sizeof(buffer), "Camera Eye: (%.2f, %.2f, %.2f)",
-           m_camera.eye.x, m_camera.eye.y, m_camera.eye.z);
-  drawText(xPos, yPos, buffer);
-  yPos -= lineHeight;
-
-  snprintf(buffer, sizeof(buffer), "Camera Center: (%.2f, %.2f, %.2f)",
-           m_camera.center.x, m_camera.center.y, m_camera.center.z);
-  drawText(xPos, yPos, buffer);
-  yPos -= lineHeight;
-
-  snprintf(buffer, sizeof(buffer), "Camera Up: (%.2f, %.2f, %.2f)",
-           m_camera.up.x, m_camera.up.y, m_camera.up.z);
-  drawText(xPos, yPos, buffer);
-  yPos -= lineHeight;
-
-  snprintf(buffer, sizeof(buffer), "FOV: %.2f deg", m_camera.fovy);
-  drawText(xPos, yPos, buffer);
-  yPos -= lineHeight;
-
-  snprintf(buffer, sizeof(buffer), "Rotation Speed: %.2f deg/frame",
-           m_rotationSpeed);
-  drawText(xPos, yPos, buffer);
-  yPos -= lineHeight;
-
-  // List rendering modes
-  drawText(xPos, yPos, "Rendering Modes:");
-  yPos -= lineHeight;
-
-  drawText(xPos + 20.0f, yPos, "0 = Grayscale");
-  yPos -= lineHeight;
-  drawText(xPos + 20.0f, yPos, "1 = Random Color");
-  yPos -= lineHeight;
-  drawText(xPos + 20.0f, yPos, "2 = Material Color");
-  yPos -= lineHeight;
-  drawText(xPos + 20.0f, yPos, "3 = Texture");
-  yPos -= lineHeight;
-
-  // Current mode indicator
-  snprintf(buffer, sizeof(buffer), "Current Mode: %d",
-           static_cast<int>(m_currentMode));
-  drawText(xPos, yPos, buffer);
-  yPos -= lineHeight;
-
-  // Instructions
-  drawText(xPos, yPos, "Press 'T' to cycle modes.");
-  yPos -= lineHeight;
-  drawText(xPos, yPos, "Drag & drop a BMP texture onto the window.");
-
-  // Restore previous states
-  glEnable(GL_DEPTH_TEST);
-  glPopMatrix();
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-  glMatrixMode(GL_MODELVIEW);
-}
-
-/**
- * @brief Draws text on the screen at specified (x, y) coordinates.
- */
-void Renderer::drawText(float x, float y, const char *text) {
-  glRasterPos2f(x, y);
-  for (const char *p = text; *p != '\0'; p++) {
-    glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *p);
-  }
 }
