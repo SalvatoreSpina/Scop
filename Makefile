@@ -7,10 +7,12 @@ SANFLAGS    := -fsanitize=address -g
 LDFLAGS     := -Llibs/glew/lib64 -lGLEW -lGL -lglut -lglfw -Wl,-rpath,libs/glew/lib64
 
 SRCS        := main.cpp \
-               srcs/ArgumentParser.cpp \
-               srcs/OBJLoader.cpp \
-               srcs/window.cpp \
-               srcs/Renderer.cpp
+			   srcs/ArgumentParser.cpp \
+			   srcs/OBJLoader.cpp \
+			   srcs/Window.cpp \
+			   srcs/Renderer.cpp \
+			   srcs/Camera.cpp \
+			   srcs/Overlay.cpp \
 
 OBJS        := $(SRCS:.cpp=.o)
 
