@@ -1,5 +1,7 @@
 #include "Renderer.hpp"
 
+#include "OBJLoader.hpp"
+
 #include <array>
 #include <cfloat> // for FLT_MAX
 #include <cmath>  // for cosf, sinf
@@ -86,6 +88,32 @@ void Renderer::initializeGL() {
   glEnable(GL_TEXTURE_2D);
 }
 
+void Renderer::buildFaceBasedColors(const OBJModel &_current_model) {
+  // Build face-based colors
+  std::mt19937 rng(12345);
+  std::uniform_real_distribution<float> dist(0.2f, 1.0f);
+
+  m_faceGrayColors.resize(_current_model.faces.size());
+  m_faceRandomColors.resize(_current_model.faces.size());
+  m_faceMaterialColors.resize(_current_model.faces.size());
+
+  for (size_t i = 0; i < _current_model.faces.size(); ++i) {
+    // Grayscale: random gray per face
+    float grey = dist(rng);
+    m_faceGrayColors[i] = {grey, grey, grey};
+
+    // Random color per face
+    float r = dist(rng);
+    float g = dist(rng);
+    float b = dist(rng);
+    m_faceRandomColors[i] = {r, g, b};
+
+    // Material color: placeholder (can be replaced with actual material
+    // parsing)
+    m_faceMaterialColors[i] = {0.3f, 0.6f, 1.0f}; // Example: sky blue
+  }
+}
+
 /**
  * @brief Runs the main rendering loop.
  * @param model The OBJ model to render.
@@ -94,31 +122,8 @@ void Renderer::run(const OBJModel &model) {
   // Center the model
   computeModelCenter(model);
 
-  // Build face-based colors
-  {
-    std::mt19937 rng(12345);
-    std::uniform_real_distribution<float> dist(0.2f, 1.0f);
-
-    m_faceGrayColors.resize(model.faces.size());
-    m_faceRandomColors.resize(model.faces.size());
-    m_faceMaterialColors.resize(model.faces.size());
-
-    for (size_t i = 0; i < model.faces.size(); ++i) {
-      // Grayscale: random gray per face
-      float grey = dist(rng);
-      m_faceGrayColors[i] = {grey, grey, grey};
-
-      // Random color per face
-      float r = dist(rng);
-      float g = dist(rng);
-      float b = dist(rng);
-      m_faceRandomColors[i] = {r, g, b};
-
-      // Material color: placeholder (can be replaced with actual material
-      // parsing)
-      m_faceMaterialColors[i] = {0.3f, 0.6f, 1.0f}; // Example: sky blue
-    }
-  }
+  this->_current_model = model;
+  buildFaceBasedColors(model);
 
   // Initialize timing
   m_lastFrameTime = glfwGetTime();
@@ -136,7 +141,7 @@ void Renderer::run(const OBJModel &model) {
       handleFreeCameraRotation(deltaTime);
     }
 
-    renderFrame(model);
+    renderFrame(_current_model);
     glfwSwapBuffers(m_window);
     glfwPollEvents();
   }
@@ -527,8 +532,13 @@ void Renderer::onDrop(int count, const char **paths) {
   if (count <= 0) {
     return;
   }
-  // Load the first dropped file
-  loadTextureFromFile(paths[0]);
+  std::string droppedFile = paths[0];
+  std::cout << "Dropped file: " << droppedFile << std::endl;
+  if (droppedFile.find(".bmp") != std::string::npos) {
+    loadTextureFromFile(droppedFile);
+  } else if (droppedFile.find(".obj") != std::string::npos) {
+    loadModelFromFile(droppedFile);
+  }
 }
 
 /**
@@ -551,6 +561,21 @@ void Renderer::loadTextureFromFile(const std::string &filePath) {
     m_textureID = newTexture;
     std::cout << "Texture loaded successfully. Texture ID: " << m_textureID
               << std::endl;
+  }
+}
+
+void Renderer::loadModelFromFile(const std::string &filePath) {
+  std::cout << "Attempting to load model: " << filePath << std::endl;
+
+  auto new_model = OBJModel();
+  bool isNewModelValid = OBJLoader::loadOBJ(filePath, new_model);
+  if (isNewModelValid) {
+    std::cout << "Model loaded successfully.\n";
+    computeModelCenter(new_model);
+    buildFaceBasedColors(new_model);
+    this->_current_model = new_model;
+  } else {
+    std::cerr << "Failed to load model.\n";
   }
 }
 

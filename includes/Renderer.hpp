@@ -64,6 +64,10 @@ private:
   void loadTextureFromFile(const std::string &filePath);
   void generateWhiteTexture(unsigned int width, unsigned int height);
 
+  // Model loading
+  void loadModelFromFile(const std::string &filePath);
+  void buildFaceBasedColors(const OBJModel &_current_model);
+
   /**
    * @brief Updates the Overlay with the latest window size.
    */
@@ -74,6 +78,9 @@ private:
   void handleFreeCameraRotation(float deltaTime);
 
 private:
+  // Model
+  OBJModel _current_model;
+
   GLFWwindow *m_window;
   int m_width;
   int m_height;
