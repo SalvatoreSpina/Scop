@@ -31,53 +31,51 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   glLoadIdentity();
   glDisable(GL_DEPTH_TEST);
 
-  float lineHeight = 18.0f;
-  float xPos = 10.0f;
-  float yPos = m_height - lineHeight - 10; // Start near top
+  float lineHeight = 18.0f; // Height of each line of text
+  float padding = 100.0f;   // Padding from the top of the screen
 
-  // Display camera information line by line
+  // Left side: Keybinds and their effects
+  float leftXPos = 10.0f;
+  float leftYPos = m_height - padding; // Start below the padding
+
+  drawText(leftXPos, leftYPos, "Keybinds:");
+  leftYPos -= lineHeight;
+  drawText(leftXPos, leftYPos, "Press 'T' to cycle modes.");
+  leftYPos -= lineHeight;
+  drawText(leftXPos, leftYPos, "Press 'F' to toggle Free Camera Mode.");
+  leftYPos -= lineHeight;
+  drawText(leftXPos, leftYPos, "Arrow keys: Rotate (Free Camera Mode).");
+  leftYPos -= lineHeight;
+  drawText(leftXPos, leftYPos, "W/A/S/D/Q/E: Move (Free Camera Mode).");
+  leftYPos -= lineHeight;
+  drawText(leftXPos, leftYPos, "'+'/'-': Adjust rotation speed (Focus Mode).");
+  leftYPos -= lineHeight;
+  drawText(leftXPos, leftYPos,
+           "Space: Reset camera and settings (Focus Mode).");
+
+  // Right side: Current data
+  float rightXPos = m_width - 300.0f;   // Adjust to fit data comfortably
+  float rightYPos = m_height - padding; // Start below the padding
+
   std::istringstream cameraStream(cameraInfo);
   std::string line;
+
+  drawText(rightXPos, rightYPos, "Current Data:");
+  rightYPos -= lineHeight;
+
+  // Display camera information line by line
   while (std::getline(cameraStream, line)) {
-    drawText(xPos, yPos, line);
-    yPos -= lineHeight;
+    drawText(rightXPos, rightYPos, line);
+    rightYPos -= lineHeight;
   }
 
   // Display current rendering mode
   std::stringstream ss;
-  ss << "Current Mode: " << currentMode << " / " << (totalModes - 1);
-  drawText(xPos, yPos, ss.str());
-  yPos -= lineHeight;
-
-  // Instructions
-  if (currentMode <
-      static_cast<int>(RenderMode::COUNT)) { // Ensure mode is valid
-    switch (static_cast<RenderMode>(currentMode)) {
-    case RenderMode::GRAYSCALE:
-      drawText(xPos, yPos, "Mode 0: Grayscale");
-      break;
-    case RenderMode::RANDOM_COLOR:
-      drawText(xPos, yPos, "Mode 1: Random Color");
-      break;
-    case RenderMode::MATERIAL_COLOR:
-      drawText(xPos, yPos, "Mode 2: Material Color");
-      break;
-    case RenderMode::TEXTURE:
-      drawText(xPos, yPos, "Mode 3: Texture");
-      break;
-    default:
-      break;
-    }
-  }
-  yPos -= lineHeight;
-
-  drawText(xPos, yPos, "Press 'T' to cycle modes.");
-  yPos -= lineHeight;
-  drawText(xPos, yPos, "Press 'F' to toggle Free Camera Mode.");
-  yPos -= lineHeight;
-  if (currentMode >= 0 && currentMode < static_cast<int>(RenderMode::COUNT)) {
-    // Additional instructions based on mode can be added here if needed
-  }
+  static const char *modes[] = {"Grayscale", "Random Color", "Texture"};
+  const char *currentModeName = modes[currentMode];
+  ss << "Render Mode: " << currentModeName << " (" << currentMode + 1 << " / "
+     << (totalModes) << ")";
+  drawText(rightXPos, rightYPos, ss.str());
 
   // Restore previous states
   glEnable(GL_DEPTH_TEST);
@@ -91,6 +89,7 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
  * @brief Draws text at the specified (x, y) position.
  */
 void Overlay::drawText(float x, float y, const std::string &text) {
+  glColor3f(1.0f, 1.0f, 1.0f); // Always render text in white
   glRasterPos2f(x, y);
   for (const char &c : text) {
     glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);

@@ -269,11 +269,6 @@ void Renderer::setFaceColor(RenderMode mode, size_t faceIndex) {
     glColor3f(rc[0], rc[1], rc[2]);
     break;
   }
-  case RenderMode::MATERIAL_COLOR: {
-    auto &mc = m_faceMaterialColors[faceIndex];
-    glColor3f(mc[0], mc[1], mc[2]);
-    break;
-  }
   case RenderMode::TEXTURE: {
     // Set to white to display the texture without tinting
     glColor3f(1.0f, 1.0f, 1.0f);

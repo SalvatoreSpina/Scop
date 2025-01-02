@@ -9,7 +9,6 @@
 enum class RenderMode {
   GRAYSCALE = 0,
   RANDOM_COLOR,
-  MATERIAL_COLOR,
   TEXTURE,
   COUNT // Not a mode, just to help us cycle
 };
