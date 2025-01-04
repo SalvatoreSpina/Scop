@@ -85,7 +85,8 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   drawText(bottomLeftXPos, bottomLeftYPos, "Object Name: " + model.objectName);
   bottomLeftYPos -= lineHeight;
 
-  drawText(bottomLeftXPos, bottomLeftYPos, "Texture Name: " + model.textureName);
+  drawText(bottomLeftXPos, bottomLeftYPos,
+           "Texture Name: " + model.textureName);
   bottomLeftYPos -= lineHeight;
 
   std::stringstream modelDetails;

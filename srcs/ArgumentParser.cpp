@@ -35,7 +35,7 @@ void Parser::parseArguments(int argc, char **argv, OBJModel &model) {
   }
 
   // If successful, print some stats
-  std::cout << "Loaded OBJ file successfully!\n";\
+  std::cout << "Loaded OBJ file successfully!\n";
   std::cout << "Object Name:    " << model.objectName << "\n";
   std::cout << "Texture Name:   " << model.textureName << "\n";
   std::cout << "Vertices:       " << model.vertices.size() << "\n";
