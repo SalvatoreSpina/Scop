@@ -157,142 +157,140 @@ void Renderer::run() {
 }
 
 /**
- * @brief Renders a single frame with automatic uniform scaling to fit a desired size.
+ * @brief Renders a single frame with automatic uniform scaling to fit a desired
+ * size.
  */
 void Renderer::renderFrame(const OBJModel &model) {
-    // Clear buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // Clear buffers
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Setup projection
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    Matrix4 proj = m_camera.getProjectionMatrix();
-    glLoadMatrixf(proj.m);
+  // Setup projection
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  Matrix4 proj = m_camera.getProjectionMatrix();
+  glLoadMatrixf(proj.m);
 
-    // Setup modelview
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+  // Setup modelview
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
 
-    // Determine view matrix based on camera mode
-    Matrix4 view;
-    if (m_freeCameraMode) {
-        view = m_camera.getViewMatrix(true);  // Free Camera Mode
-    } else {
-        view = m_camera.getViewMatrix(false); // Focus Mode
+  // Determine view matrix based on camera mode
+  Matrix4 view;
+  if (m_freeCameraMode) {
+    view = m_camera.getViewMatrix(true); // Free Camera Mode
+  } else {
+    view = m_camera.getViewMatrix(false); // Focus Mode
+  }
+  glLoadMatrixf(view.m);
+
+  // ----------------------------------------------------------------------
+  // 1. Compute bounding box of the OBJModel
+  //    (We do it here, but you could do it once when model is loaded)
+  // ----------------------------------------------------------------------
+  if (!model.vertices.empty()) {
+    float minX = FLT_MAX, maxX = -FLT_MAX;
+    float minY = FLT_MAX, maxY = -FLT_MAX;
+    float minZ = FLT_MAX, maxZ = -FLT_MAX;
+
+    for (const auto &v : model.vertices) {
+      if (v.x < minX)
+        minX = v.x;
+      if (v.x > maxX)
+        maxX = v.x;
+      if (v.y < minY)
+        minY = v.y;
+      if (v.y > maxY)
+        maxY = v.y;
+      if (v.z < minZ)
+        minZ = v.z;
+      if (v.z > maxZ)
+        maxZ = v.z;
     }
+
+    float sizeX = maxX - minX;
+    float sizeY = maxY - minY;
+    float sizeZ = maxZ - minZ;
+    float extent = std::max({sizeX, sizeY, sizeZ});
+
+    // ----------------------------------------------------------------------
+    // 2. Decide how large you want the model to be. For instance, if we want
+    //    the longest side (X, Y, or Z) to be 2.0 units, do:
+    // ----------------------------------------------------------------------
+    float desiredSize = 2.0f; // or whatever size you want
+    // Avoid divide-by-zero:
+    float scaleFactor = (extent > 1e-5f) ? (desiredSize / extent) : 1.0f;
+
+    // ----------------------------------------------------------------------
+    // 3. Build a uniform scale matrix using the computed scaleFactor
+    // ----------------------------------------------------------------------
+    Matrix4 scale;
+    scale.setIdentity();
+    scale.m[0] = scaleFactor;  // x-scale
+    scale.m[5] = scaleFactor;  // y-scale
+    scale.m[10] = scaleFactor; // z-scale
+
+    // ----------------------------------------------------------------------
+    // 4. We also want to center the model around (0,0,0) or your custom center
+    //    The typical approach is to translate the bounding box center to
+    //    origin. We can do that with m_modelTranslation, which you might have
+    //    set up in computeModelCenter(...).
+    // ----------------------------------------------------------------------
+
+    // (Optional) If you already have m_modelTranslation shifting the model
+    // so its center is at origin, no extra step is needed.
+
+    // ----------------------------------------------------------------------
+    // 5. If in Focus Mode, apply rotation to spin the model
+    // ----------------------------------------------------------------------
+    Matrix4 rotation;
+    rotation.setIdentity();
+    if (!m_freeCameraMode) {
+      m_rotationAngle += m_rotationSpeed;
+      float radians = m_rotationAngle * 3.1415926535f / 180.0f;
+      rotation.m[0] = cosf(radians);
+      rotation.m[2] = sinf(radians);
+      rotation.m[8] = -sinf(radians);
+      rotation.m[10] = cosf(radians);
+    }
+
+    // Combine: scale -> translation -> rotation
+    // (You might prefer a different order, but typically:
+    //  scale * translation means "translate after scaling the model".)
+    // So we do: scaledModel = rotation * (scale * m_modelTranslation)
+    Matrix4 scaled = Matrix4::multiply(scale, m_modelTranslation);
+    Matrix4 modelMatrix = Matrix4::multiply(rotation, scaled);
+
+    // Multiply with the view
+    Matrix4 modelView = Matrix4::multiply(view, modelMatrix);
+    glLoadMatrixf(modelView.m);
+  } else {
+    // If no vertices, just load the view matrix
     glLoadMatrixf(view.m);
+  }
 
-    // ----------------------------------------------------------------------
-    // 1. Compute bounding box of the OBJModel
-    //    (We do it here, but you could do it once when model is loaded)
-    // ----------------------------------------------------------------------
-    if (!model.vertices.empty()) {
-        float minX = FLT_MAX, maxX = -FLT_MAX;
-        float minY = FLT_MAX, maxY = -FLT_MAX;
-        float minZ = FLT_MAX, maxZ = -FLT_MAX;
+  // Draw the model
+  drawAllFaces(model);
 
-        for (const auto &v : model.vertices) {
-            if (v.x < minX) minX = v.x;
-            if (v.x > maxX) maxX = v.x;
-            if (v.y < minY) minY = v.y;
-            if (v.y > maxY) maxY = v.y;
-            if (v.z < minZ) minZ = v.z;
-            if (v.z > maxZ) maxZ = v.z;
-        }
+  // ----------------------------------------------------------------------
+  // Overlay / camera info
+  // ----------------------------------------------------------------------
+  std::stringstream cameraInfoStream;
+  cameraInfoStream << "Camera Eye: (" << m_camera.eye.x << ", "
+                   << m_camera.eye.y << ", " << m_camera.eye.z << ")\n"
+                   << "Camera Center: (" << m_camera.center.x << ", "
+                   << m_camera.center.y << ", " << m_camera.center.z << ")\n"
+                   << "Camera Up: (" << m_camera.up.x << ", " << m_camera.up.y
+                   << ", " << m_camera.up.z << ")\n"
+                   << "FOV: " << m_camera.fovy << " deg\n"
+                   << "Rotation Speed: " << m_rotationSpeed << " deg/frame";
 
-        float sizeX = maxX - minX;
-        float sizeY = maxY - minY;
-        float sizeZ = maxZ - minZ;
-        float extent = std::max({ sizeX, sizeY, sizeZ });
+  std::string cameraInfo = cameraInfoStream.str();
 
-        // ----------------------------------------------------------------------
-        // 2. Decide how large you want the model to be. For instance, if we want
-        //    the longest side (X, Y, or Z) to be 2.0 units, do:
-        // ----------------------------------------------------------------------
-        float desiredSize = 2.0f; // or whatever size you want
-        // Avoid divide-by-zero:
-        float scaleFactor = (extent > 1e-5f) ? (desiredSize / extent) : 1.0f;
-
-        // ----------------------------------------------------------------------
-        // 3. Build a uniform scale matrix using the computed scaleFactor
-        // ----------------------------------------------------------------------
-        Matrix4 scale;
-        scale.setIdentity();
-        scale.m[0]  = scaleFactor; // x-scale
-        scale.m[5]  = scaleFactor; // y-scale
-        scale.m[10] = scaleFactor; // z-scale
-
-        // ----------------------------------------------------------------------
-        // 4. We also want to center the model around (0,0,0) or your custom center
-        //    The typical approach is to translate the bounding box center to origin.
-        //    We can do that with m_modelTranslation, which you might have set up
-        //    in computeModelCenter(...).
-        // ----------------------------------------------------------------------
-
-        // (Optional) If you already have m_modelTranslation shifting the model
-        // so its center is at origin, no extra step is needed.
-
-        // ----------------------------------------------------------------------
-        // 5. If in Focus Mode, apply rotation to spin the model
-        // ----------------------------------------------------------------------
-        Matrix4 rotation;
-        rotation.setIdentity();
-        if (!m_freeCameraMode) {
-            m_rotationAngle += m_rotationSpeed;
-            float radians = m_rotationAngle * 3.1415926535f / 180.0f;
-            rotation.m[0]  = cosf(radians);
-            rotation.m[2]  = sinf(radians);
-            rotation.m[8]  = -sinf(radians);
-            rotation.m[10] = cosf(radians);
-        }
-
-        // Combine: scale -> translation -> rotation
-        // (You might prefer a different order, but typically:
-        //  scale * translation means "translate after scaling the model".)
-        // So we do: scaledModel = rotation * (scale * m_modelTranslation)
-        Matrix4 scaled = Matrix4::multiply(scale, m_modelTranslation);
-        Matrix4 modelMatrix = Matrix4::multiply(rotation, scaled);
-
-        // Multiply with the view
-        Matrix4 modelView = Matrix4::multiply(view, modelMatrix);
-        glLoadMatrixf(modelView.m);
-    }
-    else {
-        // If no vertices, just load the view matrix
-        glLoadMatrixf(view.m);
-    }
-
-    // Draw the model
-    drawAllFaces(model);
-
-    // ----------------------------------------------------------------------
-    // Overlay / camera info
-    // ----------------------------------------------------------------------
-    std::stringstream cameraInfoStream;
-    cameraInfoStream << "Camera Eye: ("
-                     << m_camera.eye.x << ", "
-                     << m_camera.eye.y << ", "
-                     << m_camera.eye.z << ")\n"
-                     << "Camera Center: ("
-                     << m_camera.center.x << ", "
-                     << m_camera.center.y << ", "
-                     << m_camera.center.z << ")\n"
-                     << "Camera Up: ("
-                     << m_camera.up.x << ", "
-                     << m_camera.up.y << ", "
-                     << m_camera.up.z << ")\n"
-                     << "FOV: " << m_camera.fovy << " deg\n"
-                     << "Rotation Speed: " << m_rotationSpeed << " deg/frame";
-
-    std::string cameraInfo = cameraInfoStream.str();
-
-    // Render overlay
-    m_overlay.render(cameraInfo,
-                     static_cast<int>(m_currentMode),
-                     static_cast<int>(RenderMode::COUNT),
-                     model);
+  // Render overlay
+  m_overlay.render(cameraInfo, static_cast<int>(m_currentMode),
+                   static_cast<int>(RenderMode::COUNT), model);
+  glfwSetMouseButtonCallback(m_window, Renderer::mouseButtonCallback);
 }
-
 
 /**
  * @brief Draws all faces of the model based on the current rendering mode.
@@ -862,4 +860,42 @@ void Renderer::handleFreeCameraRotation(float deltaTime) {
   // Reset deltas after applying
   m_yawDelta = 0.0f;
   m_pitchDelta = 0.0f;
+}
+
+void Renderer::mouseButtonCallback(GLFWwindow *window, int button, int action,
+                                   int mods) {
+  auto *r = reinterpret_cast<Renderer *>(glfwGetWindowUserPointer(window));
+  if (r) {
+    r->onMouseButton(button, action, mods);
+  }
+}
+
+void Renderer::onMouseButton(int button, int action, int mods) {
+  static_cast<void>(mods); // Unused
+  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+    double rawMouseX, rawMouseY;
+    glfwGetCursorPos(m_window, &rawMouseX, &rawMouseY);
+
+    // If overlay’s 0,0 is at bottom-left, invert Y:
+    float mouseX = static_cast<float>(rawMouseX);
+    float clickY = static_cast<float>(m_height) - static_cast<float>(rawMouseY);
+
+    // For "Open Folder" text, let's guess bounding box = 120 wide, 30 tall
+    float openW = 200.0f;
+    float openH = 100.0f;
+    float openX = static_cast<float>(m_width) - openW - 10.0f;
+    float openY = 50.0f;
+
+    if (mouseX >= openX && mouseX <= (openX + openW) && clickY >= openY &&
+        clickY <= (openY + openH)) {
+      // OS-specific command:
+#ifdef _WIN32
+      system("explorer .\\objs");
+#elif __APPLE__
+      system("open ./objs");
+#else
+      system("xdg-open ./objs");
+#endif
+    }
+  }
 }

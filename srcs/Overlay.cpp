@@ -2,6 +2,8 @@
 #include <iostream>
 #include <sstream>
 
+static void *BIG_FONT = GLUT_BITMAP_HELVETICA_18;
+
 /**
  * @brief Constructs an Overlay with given window dimensions.
  */
@@ -34,7 +36,9 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   float lineHeight = 18.0f;
   float padding = 100.0f;
 
-  // Left side: Keybinds and their effects
+  //
+  // 1) Left side: Keybinds
+  //
   float leftXPos = 10.0f;
   float leftYPos = m_height - padding;
 
@@ -50,41 +54,42 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   leftYPos -= lineHeight;
   drawText(leftXPos, leftYPos, "'+'/'-': Adjust rotation speed (Focus Mode).");
   leftYPos -= lineHeight;
-  drawText(leftXPos, leftYPos,
-           "Space: Reset camera and settings (Focus Mode).");
+  drawText(leftXPos, leftYPos, "Space: Reset camera (Focus Mode).");
 
-  // Right side: Current data
+  //
+  // 2) Right side: Current camera / rendering data
+  //
   float rightXPos = m_width - 300.0f;
   float rightYPos = m_height - padding;
-
-  std::istringstream cameraStream(cameraInfo);
-  std::string line;
 
   drawText(rightXPos, rightYPos, "Current Data:");
   rightYPos -= lineHeight;
 
+  std::istringstream cameraStream(cameraInfo);
+  std::string line;
   while (std::getline(cameraStream, line)) {
     drawText(rightXPos, rightYPos, line);
     rightYPos -= lineHeight;
   }
 
-  std::stringstream ss;
   static const char *modes[] = {"Grayscale", "Random Color", "Texture"};
   const char *currentModeName = modes[currentMode];
-  ss << "Render Mode: " << currentModeName << " (" << currentMode + 1 << " / "
+  std::stringstream ss;
+  ss << "Render Mode: " << currentModeName << " (" << (currentMode + 1) << " / "
      << totalModes << ")";
+
   drawText(rightXPos, rightYPos, ss.str());
 
-  // Bottom-left corner: Model details
+  //
+  // 3) Bottom-left corner: Model details
+  //
   float bottomLeftXPos = 10.0f;
-  float bottomLeftYPos = 10.0f + lineHeight * 6; // Adjust for multi-line text
+  float bottomLeftYPos = 10.0f + lineHeight * 6;
 
   drawText(bottomLeftXPos, bottomLeftYPos, "Model Details:");
   bottomLeftYPos -= lineHeight;
-
   drawText(bottomLeftXPos, bottomLeftYPos, "Object Name: " + model.objectName);
   bottomLeftYPos -= lineHeight;
-
   drawText(bottomLeftXPos, bottomLeftYPos,
            "Texture Name: " + model.textureName);
   bottomLeftYPos -= lineHeight;
@@ -108,6 +113,13 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   modelDetails << "Faces: " << model.faces.size();
   drawText(bottomLeftXPos, bottomLeftYPos, modelDetails.str());
 
+  float openW = 120.0f;
+  float openX = (float)m_width - openW - 50.0f;
+  float openY = 10.0f;
+
+  // Draw the bigger text
+  drawLargeText(openX, openY, "Open assets folder");
+
   // Restore previous states
   glEnable(GL_DEPTH_TEST);
   glPopMatrix();
@@ -117,12 +129,25 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
 }
 
 /**
- * @brief Draws text at the specified (x, y) position.
+ * @brief Draws standard-sized text at the specified (x, y) position
+ *        using GLUT_BITMAP_9_BY_15.
  */
 void Overlay::drawText(float x, float y, const std::string &text) {
   glColor3f(1.0f, 1.0f, 1.0f); // Always render text in white
   glRasterPos2f(x, y);
-  for (const char &c : text) {
+  for (char c : text) {
     glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);
+  }
+}
+
+/**
+ * @brief Draws larger text at (x, y) using a bigger GLUT font.
+ *        e.g. GLUT_BITMAP_HELVETICA_18 or GLUT_BITMAP_TIMES_ROMAN_24
+ */
+void Overlay::drawLargeText(float x, float y, const std::string &text) {
+  glColor3f(1.0f, 1.0f, 1.0f);
+  glRasterPos2f(x, y);
+  for (char c : text) {
+    glutBitmapCharacter(BIG_FONT, c);
   }
 }

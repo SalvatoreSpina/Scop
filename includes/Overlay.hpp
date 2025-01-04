@@ -53,4 +53,5 @@ private:
    * @param text Text to render.
    */
   void drawText(float x, float y, const std::string &text);
+  void drawLargeText(float x, float y, const std::string &text);
 };

@@ -52,6 +52,10 @@ private:
   static void dropCallback(GLFWwindow *window, int count, const char **paths);
   void onDrop(int count, const char **paths);
 
+  static void mouseButtonCallback(GLFWwindow *window, int button, int action,
+                                  int mods);
+  void onMouseButton(int button, int action, int mods);
+
   // Camera controls
   void resetToDefaults();
 
