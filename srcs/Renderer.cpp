@@ -657,8 +657,9 @@ void Renderer::loadModelFromFile(const std::string &filePath) {
     std::cout << "Model loaded successfully.\n";
     computeModelCenter(new_model);
     buildFaceBasedColors(new_model);
+    new_model.objectName = filePath;
+    new_model.textureName = this->_current_model.textureName;
     this->_current_model = new_model;
-    this->_current_model.objectName = filePath;
   } else {
     std::cerr << "Failed to load model.\n";
   }

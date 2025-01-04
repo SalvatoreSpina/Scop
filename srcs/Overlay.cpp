@@ -22,6 +22,8 @@ void Overlay::updateWindowSize(int width, int height) {
  */
 void Overlay::render(const std::string &cameraInfo, int currentMode,
                      int totalModes, const OBJModel &model) {
+                      glDisable(GL_TEXTURE_2D);
+
   // Save current projection and modelview matrices
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
@@ -39,7 +41,7 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   //
   // 1) Left side: Keybinds
   //
-  float leftXPos = 10.0f;
+  float leftXPos = 40.0f;
   float leftYPos = m_height - padding;
 
   drawText(leftXPos, leftYPos, "Keybinds:");
@@ -83,8 +85,8 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   //
   // 3) Bottom-left corner: Model details
   //
-  float bottomLeftXPos = 10.0f;
-  float bottomLeftYPos = 10.0f + lineHeight * 6;
+  float bottomLeftXPos = 40.0f;
+  float bottomLeftYPos = 30.0f + lineHeight * 6;
 
   drawText(bottomLeftXPos, bottomLeftYPos, "Model Details:");
   bottomLeftYPos -= lineHeight;
@@ -114,8 +116,8 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   drawText(bottomLeftXPos, bottomLeftYPos, modelDetails.str());
 
   float openW = 120.0f;
-  float openX = (float)m_width - openW - 50.0f;
-  float openY = 10.0f;
+  float openX = (float)m_width - openW - 80.0f;
+  float openY = 40.0f;
 
   // Draw the bigger text
   drawLargeText(openX, openY, "Open assets folder");
@@ -126,6 +128,8 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();
   glMatrixMode(GL_MODELVIEW);
+  glEnable(GL_TEXTURE_2D);
+
 }
 
 /**
