@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 struct Vertex {
   float x, y, z;
@@ -25,6 +26,8 @@ struct Face {
 };
 
 struct OBJModel {
+  std::string objectName;
+  std::string textureName;
   std::vector<Vertex> vertices;
   std::vector<TexCoord> texCoords;
   std::vector<Normal> normals;

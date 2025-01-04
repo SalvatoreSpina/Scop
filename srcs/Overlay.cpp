@@ -19,7 +19,7 @@ void Overlay::updateWindowSize(int width, int height) {
  * @brief Renders the overlay with provided camera information and current mode.
  */
 void Overlay::render(const std::string &cameraInfo, int currentMode,
-                     int totalModes) {
+                     int totalModes, const OBJModel &model) {
   // Save current projection and modelview matrices
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
@@ -31,12 +31,12 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   glLoadIdentity();
   glDisable(GL_DEPTH_TEST);
 
-  float lineHeight = 18.0f; // Height of each line of text
-  float padding = 100.0f;   // Padding from the top of the screen
+  float lineHeight = 18.0f;
+  float padding = 100.0f;
 
   // Left side: Keybinds and their effects
   float leftXPos = 10.0f;
-  float leftYPos = m_height - padding; // Start below the padding
+  float leftYPos = m_height - padding;
 
   drawText(leftXPos, leftYPos, "Keybinds:");
   leftYPos -= lineHeight;
@@ -54,8 +54,8 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
            "Space: Reset camera and settings (Focus Mode).");
 
   // Right side: Current data
-  float rightXPos = m_width - 300.0f;   // Adjust to fit data comfortably
-  float rightYPos = m_height - padding; // Start below the padding
+  float rightXPos = m_width - 300.0f;
+  float rightYPos = m_height - padding;
 
   std::istringstream cameraStream(cameraInfo);
   std::string line;
@@ -63,19 +63,49 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   drawText(rightXPos, rightYPos, "Current Data:");
   rightYPos -= lineHeight;
 
-  // Display camera information line by line
   while (std::getline(cameraStream, line)) {
     drawText(rightXPos, rightYPos, line);
     rightYPos -= lineHeight;
   }
 
-  // Display current rendering mode
   std::stringstream ss;
   static const char *modes[] = {"Grayscale", "Random Color", "Texture"};
   const char *currentModeName = modes[currentMode];
   ss << "Render Mode: " << currentModeName << " (" << currentMode + 1 << " / "
-     << (totalModes) << ")";
+     << totalModes << ")";
   drawText(rightXPos, rightYPos, ss.str());
+
+  // Bottom-left corner: Model details
+  float bottomLeftXPos = 10.0f;
+  float bottomLeftYPos = 10.0f + lineHeight * 6; // Adjust for multi-line text
+
+  drawText(bottomLeftXPos, bottomLeftYPos, "Model Details:");
+  bottomLeftYPos -= lineHeight;
+
+  drawText(bottomLeftXPos, bottomLeftYPos, "Object Name: " + model.objectName);
+  bottomLeftYPos -= lineHeight;
+
+  drawText(bottomLeftXPos, bottomLeftYPos, "Texture Name: " + model.textureName);
+  bottomLeftYPos -= lineHeight;
+
+  std::stringstream modelDetails;
+  modelDetails << "Vertices: " << model.vertices.size();
+  drawText(bottomLeftXPos, bottomLeftYPos, modelDetails.str());
+  bottomLeftYPos -= lineHeight;
+
+  modelDetails.str("");
+  modelDetails << "Texture Coords: " << model.texCoords.size();
+  drawText(bottomLeftXPos, bottomLeftYPos, modelDetails.str());
+  bottomLeftYPos -= lineHeight;
+
+  modelDetails.str("");
+  modelDetails << "Normals: " << model.normals.size();
+  drawText(bottomLeftXPos, bottomLeftYPos, modelDetails.str());
+  bottomLeftYPos -= lineHeight;
+
+  modelDetails.str("");
+  modelDetails << "Faces: " << model.faces.size();
+  drawText(bottomLeftXPos, bottomLeftYPos, modelDetails.str());
 
   // Restore previous states
   glEnable(GL_DEPTH_TEST);

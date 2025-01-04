@@ -58,7 +58,7 @@ Renderer::Renderer(GLFWwindow *window, int width, int height)
   glfwSetDropCallback(m_window, Renderer::dropCallback);
 
   // Load default texture
-  loadTextureFromFile("textures/white.bmp");
+  loadTextureFromFile(this->_current_model.textureName);
 }
 
 /**
@@ -207,7 +207,7 @@ void Renderer::renderFrame(const OBJModel &model) {
 
   // Render overlay
   m_overlay.render(cameraInfo, static_cast<int>(m_currentMode),
-                   static_cast<int>(RenderMode::COUNT));
+                   static_cast<int>(RenderMode::COUNT), model);
 }
 
 /**
@@ -531,8 +531,10 @@ void Renderer::onDrop(int count, const char **paths) {
   std::cout << "Dropped file: " << droppedFile << std::endl;
   if (droppedFile.find(".bmp") != std::string::npos) {
     loadTextureFromFile(droppedFile);
+    _current_model.textureName = droppedFile;
   } else if (droppedFile.find(".obj") != std::string::npos) {
     loadModelFromFile(droppedFile);
+    _current_model.objectName = droppedFile;
   }
 }
 
@@ -569,6 +571,7 @@ void Renderer::loadModelFromFile(const std::string &filePath) {
     computeModelCenter(new_model);
     buildFaceBasedColors(new_model);
     this->_current_model = new_model;
+    this->_current_model.objectName = filePath;
   } else {
     std::cerr << "Failed to load model.\n";
   }

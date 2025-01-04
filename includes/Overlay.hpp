@@ -2,6 +2,7 @@
 
 #include <GL/freeglut.h>
 #include <string>
+#include <OBJModel.hpp>
 
 /**
  * @brief Different ways to color or texture the 3D model.
@@ -38,7 +39,7 @@ public:
    * @param currentMode Current rendering mode.
    * @param totalModes Total number of rendering modes.
    */
-  void render(const std::string &cameraInfo, int currentMode, int totalModes);
+  void render(const std::string &cameraInfo, int currentMode, int totalModes, const OBJModel &model);
 
 private:
   int m_width;  ///< Window width.
