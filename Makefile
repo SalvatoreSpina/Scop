@@ -64,3 +64,15 @@ format:
 
 grassblock:
 	./scop objs/texturized/grassblock.obj objs/texturized/grassblock.bmp
+
+parrot:
+	./scop objs/texturized/parrot.obj objs/texturized/parrot.bmp
+
+camel:
+	./scop objs/texturized/camel.obj objs/texturized/camel.bmp
+
+wolf:
+	./scop objs/texturized/wolf.obj objs/texturized/wolf.bmp
+
+trex:
+	./scop objs/texturized/trex.obj objs/texturized/trex.bmp

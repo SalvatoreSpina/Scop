@@ -113,8 +113,7 @@ void Renderer::buildFaceBasedColors(const OBJModel &_current_model) {
     float b = dist(rng);
     m_faceRandomColors[i] = {r, g, b};
 
-    // Material color: placeholder (can be replaced with actual material
-    // parsing)
+    // Material color: (light blue, we do not parse materials)
     m_faceMaterialColors[i] = {0.3f, 0.6f, 1.0f}; // Example: sky blue
   }
 }
@@ -158,67 +157,142 @@ void Renderer::run() {
 }
 
 /**
- * @brief Renders a single frame.
+ * @brief Renders a single frame with automatic uniform scaling to fit a desired size.
  */
 void Renderer::renderFrame(const OBJModel &model) {
-  // Clear buffers
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Clear buffers
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // Setup projection
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  Matrix4 proj = m_camera.getProjectionMatrix();
-  glLoadMatrixf(proj.m);
+    // Setup projection
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    Matrix4 proj = m_camera.getProjectionMatrix();
+    glLoadMatrixf(proj.m);
 
-  // Setup modelview
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+    // Setup modelview
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
-  // Determine view matrix based on camera mode
-  Matrix4 view;
-  if (m_freeCameraMode) {
-    view = m_camera.getViewMatrix(true); // Free Camera Mode
-  } else {
-    view = m_camera.getViewMatrix(false); // Focus Mode
-  }
-  glLoadMatrixf(view.m);
+    // Determine view matrix based on camera mode
+    Matrix4 view;
+    if (m_freeCameraMode) {
+        view = m_camera.getViewMatrix(true);  // Free Camera Mode
+    } else {
+        view = m_camera.getViewMatrix(false); // Focus Mode
+    }
+    glLoadMatrixf(view.m);
 
-  // Apply rotation (only in Focus Mode)
-  if (!m_freeCameraMode) {
-    m_rotationAngle += m_rotationSpeed;
-    float radians = m_rotationAngle * 3.1415926535f / 180.0f;
-    Matrix4 rotation;
-    rotation.setIdentity();
-    rotation.m[0] = cosf(radians);
-    rotation.m[2] = sinf(radians);
-    rotation.m[8] = -sinf(radians);
-    rotation.m[10] = cosf(radians);
+    // ----------------------------------------------------------------------
+    // 1. Compute bounding box of the OBJModel
+    //    (We do it here, but you could do it once when model is loaded)
+    // ----------------------------------------------------------------------
+    if (!model.vertices.empty()) {
+        float minX = FLT_MAX, maxX = -FLT_MAX;
+        float minY = FLT_MAX, maxY = -FLT_MAX;
+        float minZ = FLT_MAX, maxZ = -FLT_MAX;
 
-    Matrix4 modelMatrix = Matrix4::multiply(rotation, m_modelTranslation);
-    Matrix4 modelView = Matrix4::multiply(view, modelMatrix);
-    glLoadMatrixf(modelView.m);
-  }
+        for (const auto &v : model.vertices) {
+            if (v.x < minX) minX = v.x;
+            if (v.x > maxX) maxX = v.x;
+            if (v.y < minY) minY = v.y;
+            if (v.y > maxY) maxY = v.y;
+            if (v.z < minZ) minZ = v.z;
+            if (v.z > maxZ) maxZ = v.z;
+        }
 
-  // Draw the model based on current mode
-  drawAllFaces(model);
+        float sizeX = maxX - minX;
+        float sizeY = maxY - minY;
+        float sizeZ = maxZ - minZ;
+        float extent = std::max({ sizeX, sizeY, sizeZ });
 
-  // Prepare camera information string
-  std::stringstream cameraInfoStream;
-  cameraInfoStream << "Camera Eye: (" << m_camera.eye.x << ", "
-                   << m_camera.eye.y << ", " << m_camera.eye.z << ")\n"
-                   << "Camera Center: (" << m_camera.center.x << ", "
-                   << m_camera.center.y << ", " << m_camera.center.z << ")\n"
-                   << "Camera Up: (" << m_camera.up.x << ", " << m_camera.up.y
-                   << ", " << m_camera.up.z << ")\n"
-                   << "FOV: " << m_camera.fovy << " deg\n"
-                   << "Rotation Speed: " << m_rotationSpeed << " deg/frame";
+        // ----------------------------------------------------------------------
+        // 2. Decide how large you want the model to be. For instance, if we want
+        //    the longest side (X, Y, or Z) to be 2.0 units, do:
+        // ----------------------------------------------------------------------
+        float desiredSize = 2.0f; // or whatever size you want
+        // Avoid divide-by-zero:
+        float scaleFactor = (extent > 1e-5f) ? (desiredSize / extent) : 1.0f;
 
-  std::string cameraInfo = cameraInfoStream.str();
+        // ----------------------------------------------------------------------
+        // 3. Build a uniform scale matrix using the computed scaleFactor
+        // ----------------------------------------------------------------------
+        Matrix4 scale;
+        scale.setIdentity();
+        scale.m[0]  = scaleFactor; // x-scale
+        scale.m[5]  = scaleFactor; // y-scale
+        scale.m[10] = scaleFactor; // z-scale
 
-  // Render overlay
-  m_overlay.render(cameraInfo, static_cast<int>(m_currentMode),
-                   static_cast<int>(RenderMode::COUNT), model);
+        // ----------------------------------------------------------------------
+        // 4. We also want to center the model around (0,0,0) or your custom center
+        //    The typical approach is to translate the bounding box center to origin.
+        //    We can do that with m_modelTranslation, which you might have set up
+        //    in computeModelCenter(...).
+        // ----------------------------------------------------------------------
+
+        // (Optional) If you already have m_modelTranslation shifting the model
+        // so its center is at origin, no extra step is needed.
+
+        // ----------------------------------------------------------------------
+        // 5. If in Focus Mode, apply rotation to spin the model
+        // ----------------------------------------------------------------------
+        Matrix4 rotation;
+        rotation.setIdentity();
+        if (!m_freeCameraMode) {
+            m_rotationAngle += m_rotationSpeed;
+            float radians = m_rotationAngle * 3.1415926535f / 180.0f;
+            rotation.m[0]  = cosf(radians);
+            rotation.m[2]  = sinf(radians);
+            rotation.m[8]  = -sinf(radians);
+            rotation.m[10] = cosf(radians);
+        }
+
+        // Combine: scale -> translation -> rotation
+        // (You might prefer a different order, but typically:
+        //  scale * translation means "translate after scaling the model".)
+        // So we do: scaledModel = rotation * (scale * m_modelTranslation)
+        Matrix4 scaled = Matrix4::multiply(scale, m_modelTranslation);
+        Matrix4 modelMatrix = Matrix4::multiply(rotation, scaled);
+
+        // Multiply with the view
+        Matrix4 modelView = Matrix4::multiply(view, modelMatrix);
+        glLoadMatrixf(modelView.m);
+    }
+    else {
+        // If no vertices, just load the view matrix
+        glLoadMatrixf(view.m);
+    }
+
+    // Draw the model
+    drawAllFaces(model);
+
+    // ----------------------------------------------------------------------
+    // Overlay / camera info
+    // ----------------------------------------------------------------------
+    std::stringstream cameraInfoStream;
+    cameraInfoStream << "Camera Eye: ("
+                     << m_camera.eye.x << ", "
+                     << m_camera.eye.y << ", "
+                     << m_camera.eye.z << ")\n"
+                     << "Camera Center: ("
+                     << m_camera.center.x << ", "
+                     << m_camera.center.y << ", "
+                     << m_camera.center.z << ")\n"
+                     << "Camera Up: ("
+                     << m_camera.up.x << ", "
+                     << m_camera.up.y << ", "
+                     << m_camera.up.z << ")\n"
+                     << "FOV: " << m_camera.fovy << " deg\n"
+                     << "Rotation Speed: " << m_rotationSpeed << " deg/frame";
+
+    std::string cameraInfo = cameraInfoStream.str();
+
+    // Render overlay
+    m_overlay.render(cameraInfo,
+                     static_cast<int>(m_currentMode),
+                     static_cast<int>(RenderMode::COUNT),
+                     model);
 }
+
 
 /**
  * @brief Draws all faces of the model based on the current rendering mode.
@@ -349,8 +423,8 @@ void Renderer::onScroll(double /*xoffset*/, double yoffset) {
   m_camera.fovy -= static_cast<float>(yoffset);
   if (m_camera.fovy < 1.0f)
     m_camera.fovy = 1.0f;
-  if (m_camera.fovy > 120.0f)
-    m_camera.fovy = 120.0f;
+  if (m_camera.fovy > 150.0f)
+    m_camera.fovy = 150.0f;
 }
 
 /**
