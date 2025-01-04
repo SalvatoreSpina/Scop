@@ -61,3 +61,6 @@ destroy:
 
 format:
 	@docker run --rm -v $(PWD):/usr/src/app scop_image clang-format -i srcs/*.cpp includes/*.hpp
+
+grassblock:
+	./scop objs/texturized/grassblock.obj objs/texturized/grassblock.bmp

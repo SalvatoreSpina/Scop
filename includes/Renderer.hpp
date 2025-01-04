@@ -21,7 +21,7 @@ public:
    * @param width Initial window width.
    * @param height Initial window height.
    */
-  Renderer(GLFWwindow *window, int width, int height);
+  Renderer(GLFWwindow *window, int width, int height, OBJModel &model);
 
   /**
    * @brief Destructor: Cleans up resources.
@@ -30,9 +30,9 @@ public:
 
   /**
    * @brief Runs the main rendering loop.
-   * @param model The OBJ model to render.
+   * @param model The OBJ model to re\der.
    */
-  void run(const OBJModel &model);
+  void run();
 
 private:
   // Core OpenGL initialization and rendering

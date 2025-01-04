@@ -1,5 +1,4 @@
 #include "Renderer.hpp"
-
 #include "OBJLoader.hpp"
 
 #include <array>
@@ -16,7 +15,7 @@
  * @brief Constructor: Initializes OpenGL, sets up camera, loads default
  * texture.
  */
-Renderer::Renderer(GLFWwindow *window, int width, int height)
+Renderer::Renderer(GLFWwindow *window, int width, int height, OBJModel &model)
     : m_window(window), m_width(width), m_height(height), m_rotationAngle(0.0f),
       m_rotationSpeed(0.5f), m_currentMode(RenderMode::GRAYSCALE),
       m_textureID(0), m_overlay(width, height), m_freeCameraMode(false),
@@ -57,7 +56,10 @@ Renderer::Renderer(GLFWwindow *window, int width, int height)
   glfwSetKeyCallback(m_window, Renderer::keyCallback);
   glfwSetDropCallback(m_window, Renderer::dropCallback);
 
-  // Load default texture
+  this->_current_model = model;
+
+  std::cout << "Loading texture from file: " << this->_current_model.textureName
+            << std::endl;
   loadTextureFromFile(this->_current_model.textureName);
 }
 
@@ -86,6 +88,9 @@ void Renderer::initializeGL() {
 
   // Enable textures; we'll bind/unbind as needed
   glEnable(GL_TEXTURE_2D);
+
+  // Better perspective correction for textures
+  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 }
 
 void Renderer::buildFaceBasedColors(const OBJModel &_current_model) {
@@ -116,13 +121,18 @@ void Renderer::buildFaceBasedColors(const OBJModel &_current_model) {
 
 /**
  * @brief Runs the main rendering loop.
- * @param model The OBJ model to render.
  */
-void Renderer::run(const OBJModel &model) {
+void Renderer::run() {
+
+  auto &&model = this->_current_model;
+
   // Center the model
   computeModelCenter(model);
 
+  // Save the current model
   this->_current_model = model;
+
+  // Build face colors
   buildFaceBasedColors(model);
 
   // Initialize timing
@@ -242,7 +252,10 @@ void Renderer::drawAllFaces(const OBJModel &model) {
       if (m_currentMode == RenderMode::TEXTURE && fv.texCoordIndex >= 0 &&
           fv.texCoordIndex < static_cast<int>(model.texCoords.size())) {
         const auto &tc = model.texCoords[fv.texCoordIndex];
-        glTexCoord2f(tc.u, tc.v);
+
+        // Many BMP files are inverted in v
+        // So we do 1.0f - tc.v to flip vertically
+        glTexCoord2f(tc.u, 1.0f - tc.v);
       }
 
       // Set the vertex position
@@ -521,7 +534,7 @@ void Renderer::dropCallback(GLFWwindow *window, int count, const char **paths) {
 }
 
 /**
- * @brief Handles file drop events to load new textures.
+ * @brief Handles file drop events to load new textures or models.
  */
 void Renderer::onDrop(int count, const char **paths) {
   if (count <= 0) {
@@ -529,6 +542,8 @@ void Renderer::onDrop(int count, const char **paths) {
   }
   std::string droppedFile = paths[0];
   std::cout << "Dropped file: " << droppedFile << std::endl;
+
+  // Check file extension
   if (droppedFile.find(".bmp") != std::string::npos) {
     loadTextureFromFile(droppedFile);
     _current_model.textureName = droppedFile;
@@ -564,7 +579,7 @@ void Renderer::loadTextureFromFile(const std::string &filePath) {
 void Renderer::loadModelFromFile(const std::string &filePath) {
   std::cout << "Attempting to load model: " << filePath << std::endl;
 
-  auto new_model = OBJModel();
+  OBJModel new_model;
   bool isNewModelValid = OBJLoader::loadOBJ(filePath, new_model);
   if (isNewModelValid) {
     std::cout << "Model loaded successfully.\n";
@@ -695,9 +710,6 @@ GLuint Renderer::loadBMPTexture(const std::string &filePath) {
                GL_RGB,           // format
                GL_UNSIGNED_BYTE, // data type
                pixels.data());   // pointer to data
-
-  // Optionally generate mipmaps
-  // glGenerateMipmap(GL_TEXTURE_2D);
 
   std::cout << "Loaded BMP texture: " << filePath << " (Width: " << width
             << ", Height: " << height << ", Texture ID: " << texID << ")\n";

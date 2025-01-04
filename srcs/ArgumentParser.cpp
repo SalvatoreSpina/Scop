@@ -17,7 +17,7 @@ void Parser::parseArguments(int argc, char **argv, OBJModel &model) {
     return;
   }
 
-  model.textureName = (argc == 3) ? argv[2] : "white.bmp";
+  model.textureName = (argc == 3) ? argv[2] : "objs/texturized/white.bmp";
 
   // The user-provided .obj file path
   const std::string filePath = argv[1];

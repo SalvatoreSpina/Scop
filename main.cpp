@@ -35,10 +35,10 @@ int main(int argc, char **argv) {
   glfwMakeContextCurrent(window);
 
   // 5. Create a Renderer using this window
-  Renderer renderer(window, kDefaultWidth, kDefaultHeight);
+  Renderer renderer(window, kDefaultWidth, kDefaultHeight, model);
 
   // 6. Run the rendering / main loop
-  renderer.run(model);
+  renderer.run();
 
   // 7. Clean up
   glfwDestroyWindow(window);
