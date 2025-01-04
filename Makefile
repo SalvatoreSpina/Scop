@@ -76,3 +76,6 @@ wolf: all
 
 trex: all
 	./scop objs/texturized/trex.obj objs/texturized/trex.bmp
+
+pikachu: all
+	./scop objs/texturized/pikachu.obj objs/texturized/pikachu.bmp
