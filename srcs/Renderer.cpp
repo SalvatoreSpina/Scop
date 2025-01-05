@@ -1,6 +1,8 @@
 #include "Renderer.hpp"
 #include "OBJLoader.hpp"
 #include "TextureManager.hpp"
+#include "ModelUtils.hpp"
+#include "MeshRenderer.hpp"
 
 #include <array>
 #include <cfloat> // for FLT_MAX
@@ -93,31 +95,6 @@ void Renderer::initializeGL() {
 
   // Better perspective correction for textures
   glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-}
-
-void Renderer::buildFaceBasedColors(const OBJModel &_current_model) {
-  // Build face-based colors
-  std::mt19937 rng(12345);
-  std::uniform_real_distribution<float> dist(0.2f, 0.7f);
-
-  m_faceGrayColors.resize(_current_model.faces.size());
-  m_faceRandomColors.resize(_current_model.faces.size());
-  m_faceMaterialColors.resize(_current_model.faces.size());
-
-  for (size_t i = 0; i < _current_model.faces.size(); ++i) {
-    // Grayscale: random gray per face
-    float grey = dist(rng);
-    m_faceGrayColors[i] = {grey, grey, grey};
-
-    // Random color per face
-    float r = dist(rng);
-    float g = dist(rng);
-    float b = dist(rng);
-    m_faceRandomColors[i] = {r, g, b};
-
-    // Material color: (light blue, we do not parse materials)
-    m_faceMaterialColors[i] = {0.3f, 0.6f, 1.0f}; // Example: sky blue
-  }
 }
 
 /**
@@ -300,74 +277,14 @@ void Renderer::renderFrame(const OBJModel &model) {
  * @brief Draws all faces of the model based on the current rendering mode.
  */
 void Renderer::drawAllFaces(const OBJModel &model) {
-  if (m_currentMode == RenderMode::TEXTURE && m_textureID != 0) {
-    // Bind the texture
-    glBindTexture(GL_TEXTURE_2D, m_textureID);
-    glEnable(GL_TEXTURE_2D);
-  } else {
-    // Disable texturing
-    glDisable(GL_TEXTURE_2D);
-  }
-
-  // Iterate through each face
-  for (size_t faceIndex = 0; faceIndex < model.faces.size(); ++faceIndex) {
-    glBegin(GL_POLYGON);
-
-    // Set the color for the entire face
-    setFaceColor(m_currentMode, faceIndex);
-
-    // Iterate through each vertex in the face
-    for (const auto &fv : model.faces[faceIndex].vertices) {
-      // Validate vertex index
-      if (fv.vertexIndex < 0 ||
-          fv.vertexIndex >= static_cast<int>(model.vertices.size())) {
-        continue; // Skip invalid indices
-      }
-
-      // If in TEXTURE mode and valid texture coordinate exists
-      if (m_currentMode == RenderMode::TEXTURE && fv.texCoordIndex >= 0 &&
-          fv.texCoordIndex < static_cast<int>(model.texCoords.size())) {
-        const auto &tc = model.texCoords[fv.texCoordIndex];
-
-        // Many BMP files are inverted in v
-        // So we do 1.0f - tc.v to flip vertically
-        glTexCoord2f(tc.u, 1.0f - tc.v);
-      }
-
-      // Set the vertex position
-      const auto &v = model.vertices[fv.vertexIndex];
-      glVertex3f(v.x, v.y, v.z);
-    }
-
-    glEnd();
-  }
-}
-
-/**
- * @brief Sets the face color based on the current rendering mode.
- */
-void Renderer::setFaceColor(RenderMode mode, size_t faceIndex) {
-  switch (mode) {
-  case RenderMode::GRAYSCALE: {
-    auto &gc = m_faceGrayColors[faceIndex];
-    glColor3f(gc[0], gc[1], gc[2]);
-    break;
-  }
-  case RenderMode::RANDOM_COLOR: {
-    auto &rc = m_faceRandomColors[faceIndex];
-    glColor3f(rc[0], rc[1], rc[2]);
-    break;
-  }
-  case RenderMode::TEXTURE: {
-    // Set to white to display the texture without tinting
-    glColor3f(1.0f, 1.0f, 1.0f);
-    break;
-  }
-  default: {
-    glColor3f(1.0f, 1.0f, 1.0f);
-    break;
-  }
-  }
+  MeshRenderer::drawAllFaces(
+      model,
+      static_cast<RenderMode>(m_currentMode),
+      m_textureID,
+      m_faceGrayColors,
+      m_faceRandomColors,
+      m_faceMaterialColors
+  );
 }
 
 /**
@@ -377,34 +294,21 @@ void Renderer::computeModelCenter(const OBJModel &model) {
   if (model.vertices.empty()) {
     return;
   }
-
-  float minX = FLT_MAX, maxX = -FLT_MAX;
-  float minY = FLT_MAX, maxY = -FLT_MAX;
-  float minZ = FLT_MAX, maxZ = -FLT_MAX;
-
-  for (const auto &v : model.vertices) {
-    if (v.x < minX)
-      minX = v.x;
-    if (v.x > maxX)
-      maxX = v.x;
-    if (v.y < minY)
-      minY = v.y;
-    if (v.y > maxY)
-      maxY = v.y;
-    if (v.z < minZ)
-      minZ = v.z;
-    if (v.z > maxZ)
-      maxZ = v.z;
-  }
-
-  float cx = 0.5f * (minX + maxX);
-  float cy = 0.5f * (minY + maxY);
-  float cz = 0.5f * (minZ + maxZ);
-
+  float cx, cy, cz;
+  ModelUtilities::computeModelCenter(model, cx, cy, cz);
   m_modelTranslation.setIdentity();
   m_modelTranslation.m[12] = -cx;
   m_modelTranslation.m[13] = -cy;
   m_modelTranslation.m[14] = -cz;
+}
+
+void Renderer::buildFaceBasedColors(const OBJModel &model) {
+  ModelUtilities::buildFaceBasedColors(
+      model,
+      m_faceGrayColors,
+      m_faceRandomColors,
+      m_faceMaterialColors
+  );
 }
 
 /**

@@ -61,7 +61,6 @@ private:
 
   // Rendering modes
   void drawAllFaces(const OBJModel &model);
-  void setFaceColor(RenderMode mode, size_t faceIndex);
 
   // Texture loading
   GLuint loadBMPTexture(const std::string &filePath);

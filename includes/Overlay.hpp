@@ -5,16 +5,6 @@
 #include <string>
 
 /**
- * @brief Different ways to color or texture the 3D model.
- */
-enum class RenderMode {
-  GRAYSCALE = 0,
-  RANDOM_COLOR,
-  TEXTURE,
-  COUNT // Not a mode, just to help us cycle
-};
-
-/**
  * @brief Handles rendering of overlay text (HUD) on the screen.
  */
 class Overlay {

@@ -3,6 +3,14 @@
 #include <string>
 #include <vector>
 
+enum class RenderMode {
+    GRAYSCALE = 0,
+    RANDOM_COLOR,
+    TEXTURE,
+    WIRE_FRAME,
+    COUNT
+};
+
 struct Vertex {
   float x, y, z;
 };
