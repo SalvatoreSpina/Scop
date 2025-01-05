@@ -2,6 +2,8 @@
 #include "Renderer.hpp"
 #include "Window.hpp"
 
+#include <memory>
+
 /**
  * @brief Program entry point.
  *

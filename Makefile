@@ -13,6 +13,7 @@ SRCS        := main.cpp \
 			   srcs/Renderer.cpp \
 			   srcs/Camera.cpp \
 			   srcs/Overlay.cpp \
+			   srcs/TextureManager.cpp
 
 OBJS        := $(SRCS:.cpp=.o)
 
