@@ -6,6 +6,7 @@
 #include <cmath>  // for cosf, sinf
 #include <cstdio> // for snprintf
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <random>
 #include <sstream>
@@ -96,7 +97,7 @@ void Renderer::initializeGL() {
 void Renderer::buildFaceBasedColors(const OBJModel &_current_model) {
   // Build face-based colors
   std::mt19937 rng(12345);
-  std::uniform_real_distribution<float> dist(0.2f, 1.0f);
+  std::uniform_real_distribution<float> dist(0.2f, 0.7f);
 
   m_faceGrayColors.resize(_current_model.faces.size());
   m_faceRandomColors.resize(_current_model.faces.size());
@@ -275,8 +276,10 @@ void Renderer::renderFrame(const OBJModel &model) {
   // Overlay / camera info
   // ----------------------------------------------------------------------
   std::stringstream cameraInfoStream;
-  cameraInfoStream << "Camera Eye: (" << m_camera.eye.x << ", "
-                   << m_camera.eye.y << ", " << m_camera.eye.z << ")\n"
+
+  cameraInfoStream << std::fixed << std::setprecision(2) << "Camera Eye: ("
+                   << m_camera.eye.x << ", " << m_camera.eye.y << ", "
+                   << m_camera.eye.z << ")\n"
                    << "Camera Center: (" << m_camera.center.x << ", "
                    << m_camera.center.y << ", " << m_camera.center.z << ")\n"
                    << "Camera Up: (" << m_camera.up.x << ", " << m_camera.up.y

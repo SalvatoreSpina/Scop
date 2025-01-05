@@ -79,3 +79,6 @@ trex: all
 
 pikachu: all
 	./scop objs/texturized/pikachu.obj objs/texturized/pikachu.bmp
+
+world: all
+	./scop objs/texturized/world.obj objs/texturized/world.bmp

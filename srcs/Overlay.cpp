@@ -22,7 +22,7 @@ void Overlay::updateWindowSize(int width, int height) {
  */
 void Overlay::render(const std::string &cameraInfo, int currentMode,
                      int totalModes, const OBJModel &model) {
-                      glDisable(GL_TEXTURE_2D);
+  glDisable(GL_TEXTURE_2D);
 
   // Save current projection and modelview matrices
   glMatrixMode(GL_PROJECTION);
@@ -129,7 +129,6 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
   glPopMatrix();
   glMatrixMode(GL_MODELVIEW);
   glEnable(GL_TEXTURE_2D);
-
 }
 
 /**
