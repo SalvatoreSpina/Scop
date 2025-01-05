@@ -1,8 +1,8 @@
 #include "Renderer.hpp"
+#include "MeshRenderer.hpp"
+#include "ModelUtils.hpp"
 #include "OBJLoader.hpp"
 #include "TextureManager.hpp"
-#include "ModelUtils.hpp"
-#include "MeshRenderer.hpp"
 
 #include <array>
 #include <cfloat> // for FLT_MAX
@@ -277,14 +277,9 @@ void Renderer::renderFrame(const OBJModel &model) {
  * @brief Draws all faces of the model based on the current rendering mode.
  */
 void Renderer::drawAllFaces(const OBJModel &model) {
-  MeshRenderer::drawAllFaces(
-      model,
-      static_cast<RenderMode>(m_currentMode),
-      m_textureID,
-      m_faceGrayColors,
-      m_faceRandomColors,
-      m_faceMaterialColors
-  );
+  MeshRenderer::drawAllFaces(model, static_cast<RenderMode>(m_currentMode),
+                             m_textureID, m_faceGrayColors, m_faceRandomColors,
+                             m_faceMaterialColors);
 }
 
 /**
@@ -304,11 +299,7 @@ void Renderer::computeModelCenter(const OBJModel &model) {
 
 void Renderer::buildFaceBasedColors(const OBJModel &model) {
   ModelUtilities::buildFaceBasedColors(
-      model,
-      m_faceGrayColors,
-      m_faceRandomColors,
-      m_faceMaterialColors
-  );
+      model, m_faceGrayColors, m_faceRandomColors, m_faceMaterialColors);
 }
 
 /**

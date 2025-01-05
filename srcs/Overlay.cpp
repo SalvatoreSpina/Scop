@@ -74,7 +74,8 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
     rightYPos -= lineHeight;
   }
 
-  static const char *modes[] = {"Grayscale", "Random Color", "Texture"};
+  static const char *modes[] = {"Grayscale", "Random Color", "Wireframe",
+                                "Texture"};
   const char *currentModeName = modes[currentMode];
   std::stringstream ss;
   ss << "Render Mode: " << currentModeName << " (" << (currentMode + 1) << " / "

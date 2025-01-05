@@ -1,11 +1,10 @@
 #include "ModelUtils.hpp"
 
-#include <cfloat>    // for FLT_MAX
+#include <cfloat> // for FLT_MAX
 #include <random>
 
-void ModelUtilities::computeBoundingBox(const OBJModel &model,
-                                        float &minX, float &maxX,
-                                        float &minY, float &maxY,
+void ModelUtilities::computeBoundingBox(const OBJModel &model, float &minX,
+                                        float &maxX, float &minY, float &maxY,
                                         float &minZ, float &maxZ) {
   if (model.vertices.empty()) {
     // Return some default if empty
@@ -18,17 +17,23 @@ void ModelUtilities::computeBoundingBox(const OBJModel &model,
   maxX = maxY = maxZ = -FLT_MAX;
 
   for (const auto &v : model.vertices) {
-    if (v.x < minX) minX = v.x;
-    if (v.x > maxX) maxX = v.x;
-    if (v.y < minY) minY = v.y;
-    if (v.y > maxY) maxY = v.y;
-    if (v.z < minZ) minZ = v.z;
-    if (v.z > maxZ) maxZ = v.z;
+    if (v.x < minX)
+      minX = v.x;
+    if (v.x > maxX)
+      maxX = v.x;
+    if (v.y < minY)
+      minY = v.y;
+    if (v.y > maxY)
+      maxY = v.y;
+    if (v.z < minZ)
+      minZ = v.z;
+    if (v.z > maxZ)
+      maxZ = v.z;
   }
 }
 
-void ModelUtilities::computeModelCenter(const OBJModel &model,
-                                        float &cx, float &cy, float &cz) {
+void ModelUtilities::computeModelCenter(const OBJModel &model, float &cx,
+                                        float &cy, float &cz) {
   float minX, maxX, minY, maxY, minZ, maxZ;
   computeBoundingBox(model, minX, maxX, minY, maxY, minZ, maxZ);
 
@@ -37,10 +42,10 @@ void ModelUtilities::computeModelCenter(const OBJModel &model,
   cz = 0.5f * (minZ + maxZ);
 }
 
-void ModelUtilities::buildFaceBasedColors(const OBJModel &model,
-                                          std::vector<std::array<float, 3>> &faceGrayColors,
-                                          std::vector<std::array<float, 3>> &faceRandomColors,
-                                          std::vector<std::array<float, 3>> &faceMaterialColors) {
+void ModelUtilities::buildFaceBasedColors(
+    const OBJModel &model, std::vector<std::array<float, 3>> &faceGrayColors,
+    std::vector<std::array<float, 3>> &faceRandomColors,
+    std::vector<std::array<float, 3>> &faceMaterialColors) {
   faceGrayColors.resize(model.faces.size());
   faceRandomColors.resize(model.faces.size());
   faceMaterialColors.resize(model.faces.size());

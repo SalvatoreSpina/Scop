@@ -3,15 +3,15 @@
 #include "OBJLoader.hpp"
 
 #include <GLFW/glfw3.h>
-#include <vector>
 #include <array>
+#include <vector>
 
 /**
- * @brief A helper class dedicated to drawing an OBJModel with various color modes.
+ * @brief A helper class dedicated to drawing an OBJModel with various color
+ * modes.
  */
 class MeshRenderer {
 public:
-
   /**
    * @brief Draws all faces of the model with the given render mode and texture.
    * @param model The OBJ model to draw.
@@ -21,20 +21,19 @@ public:
    * @param faceRandomColors Precomputed face-based random colors.
    * @param faceMaterialColors Precomputed face-based material colors.
    */
-  static void drawAllFaces(const OBJModel &model,
-                           RenderMode mode,
-                           GLuint textureID,
-                           const std::vector<std::array<float, 3>> &faceGrayColors,
-                           const std::vector<std::array<float, 3>> &faceRandomColors,
-                           const std::vector<std::array<float, 3>> &faceMaterialColors);
+  static void
+  drawAllFaces(const OBJModel &model, RenderMode mode, GLuint textureID,
+               const std::vector<std::array<float, 3>> &faceGrayColors,
+               const std::vector<std::array<float, 3>> &faceRandomColors,
+               const std::vector<std::array<float, 3>> &faceMaterialColors);
 
 private:
   /**
    * @brief Sets the OpenGL face color based on the current rendering mode.
    */
-  static void setFaceColor(RenderMode mode,
-                           size_t faceIndex,
-                           const std::vector<std::array<float, 3>> &faceGrayColors,
-                           const std::vector<std::array<float, 3>> &faceRandomColors,
-                           const std::vector<std::array<float, 3>> &faceMaterialColors);
+  static void
+  setFaceColor(RenderMode mode, size_t faceIndex,
+               const std::vector<std::array<float, 3>> &faceGrayColors,
+               const std::vector<std::array<float, 3>> &faceRandomColors,
+               const std::vector<std::array<float, 3>> &faceMaterialColors);
 };

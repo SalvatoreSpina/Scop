@@ -4,11 +4,11 @@
 #include <vector>
 
 enum class RenderMode {
-    GRAYSCALE = 0,
-    RANDOM_COLOR,
-    TEXTURE,
-    WIRE_FRAME,
-    COUNT
+  GRAYSCALE = 0,
+  RANDOM_COLOR,
+  WIRE_FRAME,
+  TEXTURE,
+  COUNT
 };
 
 struct Vertex {
