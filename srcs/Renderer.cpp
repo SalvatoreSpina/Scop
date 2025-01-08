@@ -121,6 +121,7 @@ void Renderer::run() {
     // Calculate delta time
     double currentTime = glfwGetTime();
     float deltaTime = static_cast<float>(currentTime - m_lastFrameTime);
+    m_lastDeltaTime = deltaTime; // Store for transition updates
     m_lastFrameTime = currentTime;
 
     // Handle free camera movement
@@ -250,6 +251,63 @@ void Renderer::renderFrame(const OBJModel &model) {
   // Draw the model
   drawAllFaces(model);
 
+  // Overlay black quad for fade transition if needed
+  if (m_transitioning) {
+    // Update transition timing
+    m_transitionElapsed += m_lastDeltaTime;
+    float progress = m_transitionElapsed / m_transitionDuration;
+    if (progress > 1.0f)
+      progress = 1.0f;
+
+    if (m_fadeOut) {
+      m_transitionAlpha = progress;
+      if (progress >= 1.0f) {
+        // Fade-out complete: switch mode and start fade-in
+        m_currentMode = m_nextMode;
+        m_fadeOut = false;
+        m_transitionElapsed = 0.0f; // Reset for fade-in
+      }
+    } else {
+      m_transitionAlpha = 1.0f - progress;
+      if (progress >= 1.0f) {
+        // Fade-in complete
+        m_transitioning = false;
+        m_transitionAlpha = 0.0f;
+      }
+    }
+
+    // Save current matrices and attributes
+    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, m_width, 0, m_height, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // Draw a full-screen quad with black color and variable alpha
+    glColor4f(0.0f, 0.0f, 0.0f, m_transitionAlpha);
+    glBegin(GL_QUADS);
+    glVertex2f(0, 0);
+    glVertex2f(m_width, 0);
+    glVertex2f(m_width, m_height);
+    glVertex2f(0, m_height);
+    glEnd();
+
+    // Restore previous matrices and states
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glPopAttrib();
+    glMatrixMode(GL_MODELVIEW);
+  }
+
   // ----------------------------------------------------------------------
   // Overlay / camera info
   // ----------------------------------------------------------------------
@@ -378,14 +436,20 @@ void Renderer::onKey(int key, int scancode, int action, int mods) {
         resetToDefaults();
       break;
 
-    // Cycle rendering modes
+      // Cycle rendering modes
     case GLFW_KEY_T: {
-      int next = static_cast<int>(m_currentMode) + 1;
-      if (next >= static_cast<int>(RenderMode::COUNT)) {
-        next = 0; // Wrap around
+      if (!m_transitioning) {
+        int next = static_cast<int>(m_currentMode) + 1;
+        if (next >= static_cast<int>(RenderMode::COUNT)) {
+          next = 0; // Wrap around
+        }
+        m_nextMode = static_cast<RenderMode>(next);
+        // Start transition
+        m_transitioning = true;
+        m_fadeOut = true;
+        m_transitionElapsed = 0.0f;
+        m_transitionAlpha = 0.0f;
       }
-      m_currentMode = static_cast<RenderMode>(next);
-      std::cout << "Switched mode to " << next << std::endl;
       break;
     }
 

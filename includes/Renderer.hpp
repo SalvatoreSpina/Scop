@@ -134,4 +134,13 @@ private:
   // Rotation deltas
   float m_yawDelta;
   float m_pitchDelta;
+
+  // Transition-related members
+  bool m_transitioning = false;
+  bool m_fadeOut = false;
+  float m_transitionAlpha = 0.0f;
+  float m_transitionDuration = 0.25; // Duration of each fade phase in seconds
+  float m_transitionElapsed = 0.0f;
+  RenderMode m_nextMode;
+  float m_lastDeltaTime = 0.0f; // Store last frame's delta time for transitions
 };
