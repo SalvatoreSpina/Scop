@@ -20,6 +20,7 @@ public:
    * @param window Pointer to the GLFW window.
    * @param width Initial window width.
    * @param height Initial window height.
+   * @param model Reference to the initial OBJ model.
    */
   Renderer(GLFWwindow *window, int width, int height, OBJModel &model);
 
@@ -30,7 +31,6 @@ public:
 
   /**
    * @brief Runs the main rendering loop.
-   * @param model The OBJ model to re\der.
    */
   void run();
 
@@ -56,91 +56,68 @@ private:
                                   int mods);
   void onMouseButton(int button, int action, int mods);
 
-  // Camera controls
   void resetToDefaults();
-
-  // Rendering modes
   void drawAllFaces(const OBJModel &model);
 
-  // Texture loading
-  GLuint loadBMPTexture(const std::string &filePath);
   void loadTextureFromFile(const std::string &filePath);
-  void generateWhiteTexture(unsigned int width, unsigned int height);
-
-  // Model loading
   void loadModelFromFile(const std::string &filePath);
-  void buildFaceBasedColors(const OBJModel &_current_model);
+  void buildFaceBasedColors(const OBJModel &model);
 
-  /**
-   * @brief Updates the Overlay with the latest window size.
-   */
-  void updateOverlayWindowSize();
-
-  // Free Camera Controls
   void handleFreeCameraMovement(float deltaTime);
   void handleFreeCameraRotation(float deltaTime);
 
 private:
   // Model
-  OBJModel _current_model;
+  OBJModel currentModel_;
 
-  GLFWwindow *m_window;
-  int m_width;
-  int m_height;
+  GLFWwindow *window_;
+  int width_;
+  int height_;
 
   // Camera and rotation
-  Camera m_camera;
-  float m_rotationAngle;
-  float m_rotationSpeed;
+  Camera camera_;
+  float rotationAngle_;
+  float rotationSpeed_;
 
-  // Model translation to center
-  Matrix4 m_modelTranslation;
+  Matrix4 modelTranslation_;
 
   // Default camera settings for reset
-  Vector3 m_defaultEye;
-  Vector3 m_defaultCenter;
-  Vector3 m_defaultUp;
-  float m_defaultFovy;
-  float m_defaultRotationSpeed;
+  Vector3 defaultEye_;
+  Vector3 defaultCenter_;
+  Vector3 defaultUp_;
+  float defaultFovy_;
+  float defaultRotationSpeed_;
 
-  // Current rendering mode
-  RenderMode m_currentMode;
+  RenderMode currentRenderMode_;
 
-  // Face-based colors for different modes
-  std::vector<std::array<float, 3>> m_faceGrayColors;
-  std::vector<std::array<float, 3>> m_faceRandomColors;
-  std::vector<std::array<float, 3>> m_faceMaterialColors;
+  std::vector<std::array<float, 3>> faceGrayColors_;
+  std::vector<std::array<float, 3>> faceRandomColors_;
+  std::vector<std::array<float, 3>> faceMaterialColors_;
 
-  // Texture ID
-  GLuint m_textureID;
+  GLuint textureID_;
 
-  // Overlay
-  Overlay m_overlay;
+  Overlay overlay_;
 
-  // Camera Mode Flag
-  bool m_freeCameraMode;
+  bool isFreeCameraMode_;
 
-  // Timing for smooth movement
-  double m_lastFrameTime;
+  double lastFrameTime_;
 
-  // Movement flags
-  bool m_moveForward;
-  bool m_moveBackward;
-  bool m_moveLeft;
-  bool m_moveRight;
-  bool m_moveUp;
-  bool m_moveDown;
+  bool moveForward_;
+  bool moveBackward_;
+  bool moveLeft_;
+  bool moveRight_;
+  bool moveUp_;
+  bool moveDown_;
 
-  // Rotation deltas
-  float m_yawDelta;
-  float m_pitchDelta;
+  float yawDelta_;
+  float pitchDelta_;
 
-  // Transition-related members
-  bool m_transitioning = false;
-  bool m_fadeOut = false;
-  float m_transitionAlpha = 0.0f;
-  float m_transitionDuration = 0.25; // Duration of each fade phase in seconds
-  float m_transitionElapsed = 0.0f;
-  RenderMode m_nextMode;
-  float m_lastDeltaTime = 0.0f; // Store last frame's delta time for transitions
+  // Transition-related members for smooth mode changes
+  bool transitioning_;
+  bool fadeOut_;
+  float transitionAlpha_;
+  float transitionDuration_;
+  float transitionElapsed_;
+  RenderMode nextRenderMode_;
+  float lastDeltaTime_;
 };
