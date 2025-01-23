@@ -17,18 +17,12 @@ void ModelUtilities::computeBoundingBox(const OBJModel &model, float &minX,
   maxX = maxY = maxZ = -FLT_MAX;
 
   for (const auto &v : model.vertices) {
-    if (v.x < minX)
-      minX = v.x;
-    if (v.x > maxX)
-      maxX = v.x;
-    if (v.y < minY)
-      minY = v.y;
-    if (v.y > maxY)
-      maxY = v.y;
-    if (v.z < minZ)
-      minZ = v.z;
-    if (v.z > maxZ)
-      maxZ = v.z;
+    minX = std::min(minX, v.x);
+    maxX = std::max(maxX, v.x);
+    minY = std::min(minY, v.y);
+    maxY = std::max(maxY, v.y);
+    minZ = std::min(minZ, v.z);
+    maxZ = std::max(maxZ, v.z);
   }
 }
 
