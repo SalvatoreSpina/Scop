@@ -424,12 +424,15 @@ void Renderer::onKey(int key, int /*scancode*/, int action, int /*mods*/) {
 }
 
 void Renderer::resetToDefaults() {
+  // Reset camera parameters
   camera_.eye = defaultEye_;
   camera_.center = defaultCenter_;
   camera_.up = defaultUp_;
   camera_.fovy = defaultFovy_;
   rotationAngle_ = 0.0f;
   rotationSpeed_ = defaultRotationSpeed_;
+  yawDelta_ = 0.0f;
+  pitchDelta_ = 0.0f;
 }
 
 void Renderer::dropCallback(GLFWwindow *window, int count, const char **paths) {
