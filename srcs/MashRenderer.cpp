@@ -50,7 +50,7 @@ void MeshRenderer::drawAllFaces(
         } else {
           // Procedural planar mapping (e.g., on the XY plane)
           const auto &v = model.vertices[fv.vertexIndex];
-          glTexCoord2f(v.x, v.y); // Adjust based on desired mapping
+          glTexCoord2f(v.x, 1.0f - v.y); // Adjust based on desired mapping
         }
       }
 

@@ -87,4 +87,4 @@ world: all
 	./scop objs/texturized/world.obj objs/texturized/world.bmp
 
 nice: all
-	./scop objs/resources/42nice.obj 
+	./scop objs/resources/42nice.obj objs/resources/sspina.bmp
