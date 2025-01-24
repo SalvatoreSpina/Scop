@@ -85,3 +85,6 @@ pikachu: all
 
 world: all
 	./scop objs/texturized/world.obj objs/texturized/world.bmp
+
+nice: all
+	./scop objs/basic/42nice.obj 
