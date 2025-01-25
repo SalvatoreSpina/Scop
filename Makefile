@@ -87,4 +87,10 @@ world: all
 	./scop objs/texturized/world.obj objs/texturized/world.bmp
 
 nice: all
-	./scop objs/resources/42nice.obj objs/resources/sspina.bmp
+	./scop objs/resources/42NiceOfficial.obj objs/resources/sspina.bmp
+
+sasso: all
+	./scop objs/resources/42Unofficial.obj objs/resources/black.bmp
+
+sasso2: all
+	./scop objs/resources/42sso.obj objs/texturized/42sso.bmp
