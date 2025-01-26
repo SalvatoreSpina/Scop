@@ -320,7 +320,6 @@ void Renderer::onKey(int key, int /*scancode*/, int action, int /*mods*/) {
       break;
 
     case GLFW_KEY_SPACE:
-      if (!isFreeCameraMode_)
         resetToDefaults();
       break;
 
@@ -433,6 +432,8 @@ void Renderer::resetToDefaults() {
   rotationSpeed_ = defaultRotationSpeed_;
   yawDelta_ = 0.0f;
   pitchDelta_ = 0.0f;
+  camera_.forward = (camera_.center - camera_.eye).normalize();
+  camera_.right = camera_.forward.cross(camera_.up).normalize();
 }
 
 void Renderer::dropCallback(GLFWwindow *window, int count, const char **paths) {
