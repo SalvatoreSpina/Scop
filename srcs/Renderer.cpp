@@ -30,7 +30,7 @@ static OBJModel g_flipSspinaModel;
  */
 OBJModel &getFlip42Model() {
   if (!g_flip42Loaded) {
-    std::cout << "Loading flip42.obj (static preload)\n";
+    //std::cout << "Loading flip42.obj (static preload)\n";
     OBJModel temp;
     if (!OBJLoader::loadOBJ("objs/resources/flip42.obj", temp)) {
       std::cerr << "Failed to load flip42.obj\n";
@@ -48,7 +48,7 @@ OBJModel &getFlip42Model() {
  */
 OBJModel &getFlipSspinaModel() {
   if (!g_flipSspinaLoaded) {
-    std::cout << "Loading flipSspina.obj (static preload)\n";
+    //std::cout << "Loading flipSspina.obj (static preload)\n";
     OBJModel temp;
     if (!OBJLoader::loadOBJ("objs/resources/flipSspina.obj", temp)) {
       std::cerr << "Failed to load flipSspina.obj\n";
@@ -224,8 +224,6 @@ void Renderer::renderFrame(const OBJModel &model) {
           buildFaceBasedColors(newModel);
 
           currentModel_ = newModel;
-          std::cout << "Swapped to flipSspina at rotationAngle = "
-                    << rotationAngle_ << "\n";
         } else {
           // Currently flipSspina → switch to flip42
           OBJModel &newModel = getFlip42Model();
@@ -234,8 +232,6 @@ void Renderer::renderFrame(const OBJModel &model) {
           buildFaceBasedColors(newModel);
 
           currentModel_ = newModel;
-          std::cout << "Swapped to flip42 at rotationAngle = " << rotationAngle_
-                    << "\n";
         }
 
         // 2. Increase nextFlipAngle_ by +180

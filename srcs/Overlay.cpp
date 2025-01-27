@@ -91,7 +91,13 @@ void Overlay::render(const std::string &cameraInfo, int currentMode,
 
   drawText(bottomLeftXPos, bottomLeftYPos, "Model Details:");
   bottomLeftYPos -= lineHeight;
-  drawText(bottomLeftXPos, bottomLeftYPos, "Object Name: " + model.objectName);
+  if (model.objectName.find("flip") == std::string::npos) {
+    drawText(bottomLeftXPos, bottomLeftYPos,
+             "Object Name: " + model.objectName);
+  } else {
+    drawText(bottomLeftXPos, bottomLeftYPos,
+             "Object Name: special flip object!");
+  }
   bottomLeftYPos -= lineHeight;
   drawText(bottomLeftXPos, bottomLeftYPos,
            "Texture Name: " + model.textureName);
