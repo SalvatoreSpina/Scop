@@ -94,3 +94,6 @@ sasso: all
 
 sasso2: all
 	./scop objs/resources/42sso.obj objs/texturized/42sso.bmp
+
+flip: all
+	./scop objs/resources/flipSspina.obj objs/resources/black.bmp

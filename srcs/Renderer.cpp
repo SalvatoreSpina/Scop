@@ -15,6 +15,53 @@
 #include <sstream>
 #include <vector>
 
+namespace {
+
+// Static variables that hold the two flip models
+static bool g_flip42Loaded = false;
+static OBJModel g_flip42Model;
+
+static bool g_flipSspinaLoaded = false;
+static OBJModel g_flipSspinaModel;
+
+/**
+ * @brief Loads "objs/resources/flip42.obj" into a static OBJModel once and
+ * returns it.
+ */
+OBJModel &getFlip42Model() {
+  if (!g_flip42Loaded) {
+    std::cout << "Loading flip42.obj (static preload)\n";
+    OBJModel temp;
+    if (!OBJLoader::loadOBJ("objs/resources/flip42.obj", temp)) {
+      std::cerr << "Failed to load flip42.obj\n";
+    }
+    g_flip42Model = temp;
+    g_flip42Model.objectName = "objs/resources/flip42.obj";
+    g_flip42Loaded = true;
+  }
+  return g_flip42Model;
+}
+
+/**
+ * @brief Loads "objs/resources/flipSspina.obj" into a static OBJModel once and
+ * returns it.
+ */
+OBJModel &getFlipSspinaModel() {
+  if (!g_flipSspinaLoaded) {
+    std::cout << "Loading flipSspina.obj (static preload)\n";
+    OBJModel temp;
+    if (!OBJLoader::loadOBJ("objs/resources/flipSspina.obj", temp)) {
+      std::cerr << "Failed to load flipSspina.obj\n";
+    }
+    g_flipSspinaModel = temp;
+    g_flipSspinaModel.objectName = "objs/resources/flipSspina.obj";
+    g_flipSspinaLoaded = true;
+  }
+  return g_flipSspinaModel;
+}
+
+} // end anonymous namespace
+
 Renderer::Renderer(GLFWwindow *window, int width, int height, OBJModel &model)
     : window_(window), width_(width), height_(height), rotationAngle_(0.0f),
       rotationSpeed_(0.5f), currentRenderMode_(RenderMode::GRAYSCALE),
@@ -23,7 +70,7 @@ Renderer::Renderer(GLFWwindow *window, int width, int height, OBJModel &model)
       moveLeft_(false), moveRight_(false), moveUp_(false), moveDown_(false),
       yawDelta_(0.0f), pitchDelta_(0.0f), transitioning_(false),
       fadeOut_(false), transitionAlpha_(0.0f), transitionDuration_(0.25f),
-      transitionElapsed_(0.0f), lastDeltaTime_(0.0f) {
+      transitionElapsed_(0.0f), lastDeltaTime_(0.0f), nextFlipAngle_(90.0f) {
   if (!window_) {
     throw std::runtime_error("Renderer received a null GLFWwindow*!");
   }
@@ -156,8 +203,46 @@ void Renderer::renderFrame(const OBJModel &model) {
 
     Matrix4 rotation;
     rotation.setIdentity();
+
     if (!isFreeCameraMode_) {
+      // Increase rotation each frame in Focus (classic) mode
       rotationAngle_ += rotationSpeed_;
+
+      // Check if the current model is one of the two flip models
+      bool isFlip42 = (currentModel_.objectName == "objs/resources/flip42.obj");
+      bool isFlipSspina =
+          (currentModel_.objectName == "objs/resources/flipSspina.obj");
+
+      // 1. If rotationAngle_ >= nextFlipAngle_, do a flip
+      if (rotationAngle_ >= nextFlipAngle_ && (isFlip42 || isFlipSspina)) {
+        // Toggle the model
+        if (isFlip42) {
+          // Currently flip42 → switch to flipSspina
+          OBJModel &newModel = getFlipSspinaModel();
+          newModel.textureName = currentModel_.textureName;
+          computeModelCenter(newModel);
+          buildFaceBasedColors(newModel);
+
+          currentModel_ = newModel;
+          std::cout << "Swapped to flipSspina at rotationAngle = "
+                    << rotationAngle_ << "\n";
+        } else {
+          // Currently flipSspina → switch to flip42
+          OBJModel &newModel = getFlip42Model();
+          newModel.textureName = currentModel_.textureName;
+          computeModelCenter(newModel);
+          buildFaceBasedColors(newModel);
+
+          currentModel_ = newModel;
+          std::cout << "Swapped to flip42 at rotationAngle = " << rotationAngle_
+                    << "\n";
+        }
+
+        // 2. Increase nextFlipAngle_ by +180
+        nextFlipAngle_ += 180.0f;
+      }
+
+      // Convert rotationAngle_ to radians and build rotation matrix
       float radians = rotationAngle_ * 3.1415926535f / 180.0f;
       rotation.m[0] = cosf(radians);
       rotation.m[2] = sinf(radians);
@@ -320,7 +405,7 @@ void Renderer::onKey(int key, int /*scancode*/, int action, int /*mods*/) {
       break;
 
     case GLFW_KEY_SPACE:
-        resetToDefaults();
+      resetToDefaults();
       break;
 
     case GLFW_KEY_T:
