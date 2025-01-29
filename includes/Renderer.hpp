@@ -120,5 +120,7 @@ private:
   float transitionElapsed_;
   RenderMode nextRenderMode_;
   float lastDeltaTime_;
+
+  // Only for special flip
   float nextFlipAngle_;
 };

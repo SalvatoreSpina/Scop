@@ -17,7 +17,6 @@
 
 namespace {
 
-// Static variables that hold the two flip models
 static bool g_flip42Loaded = false;
 static OBJModel g_flip42Model;
 
@@ -30,7 +29,7 @@ static OBJModel g_flipSspinaModel;
  */
 OBJModel &getFlip42Model() {
   if (!g_flip42Loaded) {
-    //std::cout << "Loading flip42.obj (static preload)\n";
+    // std::cout << "Loading flip42.obj (static preload)\n";
     OBJModel temp;
     if (!OBJLoader::loadOBJ("objs/resources/flip42.obj", temp)) {
       std::cerr << "Failed to load flip42.obj\n";
@@ -48,7 +47,7 @@ OBJModel &getFlip42Model() {
  */
 OBJModel &getFlipSspinaModel() {
   if (!g_flipSspinaLoaded) {
-    //std::cout << "Loading flipSspina.obj (static preload)\n";
+    // std::cout << "Loading flipSspina.obj (static preload)\n";
     OBJModel temp;
     if (!OBJLoader::loadOBJ("objs/resources/flipSspina.obj", temp)) {
       std::cerr << "Failed to load flipSspina.obj\n";
@@ -217,7 +216,7 @@ void Renderer::renderFrame(const OBJModel &model) {
       if (rotationAngle_ >= nextFlipAngle_ && (isFlip42 || isFlipSspina)) {
         // Toggle the model
         if (isFlip42) {
-          // Currently flip42 → switch to flipSspina
+          // Currently flip42 -> switch to flipSspina
           OBJModel &newModel = getFlipSspinaModel();
           newModel.textureName = currentModel_.textureName;
           computeModelCenter(newModel);
@@ -225,7 +224,7 @@ void Renderer::renderFrame(const OBJModel &model) {
 
           currentModel_ = newModel;
         } else {
-          // Currently flipSspina → switch to flip42
+          // Currently flipSspina -> switch to flip42
           OBJModel &newModel = getFlip42Model();
           newModel.textureName = currentModel_.textureName;
           computeModelCenter(newModel);
@@ -622,13 +621,7 @@ void Renderer::onMouseButton(int button, int action, int mods) {
 
     if (mouseX >= openX && mouseX <= (openX + openW) && clickY >= openY &&
         clickY <= (openY + openH)) {
-#ifdef _WIN32
-      system("explorer .\\objs");
-#elif __APPLE__
-      system("open ./objs");
-#else
       system("xdg-open ./objs");
-#endif
     }
   }
 }
