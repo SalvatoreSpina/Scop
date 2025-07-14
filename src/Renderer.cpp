@@ -14,6 +14,7 @@
 #include <random>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 namespace {
 
