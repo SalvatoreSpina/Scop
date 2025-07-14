@@ -1,21 +1,22 @@
 NAME        := scop
 
 CXX         := g++
-CXXFLAGS    := -Wall -Werror -Wextra -std=c++20 -Iincludes -Ilibs/glew/include -fsanitize=address -g
+CXXFLAGS    := -Wall -Werror -Wextra -std=c++20 -Iinclude -Ilibs/glew/include -fsanitize=address -g
 SANFLAGS    := -fsanitize=address -g
 
 LDFLAGS     := -Llibs/glew/lib64 -lGLEW -lGL -lglut -lglfw -Wl,-rpath,libs/glew/lib64
 
-SRCS        := main.cpp \
-			   srcs/ArgumentParser.cpp \
-			   srcs/OBJLoader.cpp \
-			   srcs/Window.cpp \
-			   srcs/Renderer.cpp \
-			   srcs/Camera.cpp \
-			   srcs/Overlay.cpp \
-			   srcs/TextureManager.cpp \
-			   srcs/ModelUtils.cpp \
-			   srcs/MashRenderer.cpp \
+SRC_DIR     := src
+SRCS        := $(SRC_DIR)/main.cpp \
+                           $(SRC_DIR)/ArgumentParser.cpp \
+                           $(SRC_DIR)/OBJLoader.cpp \
+                           $(SRC_DIR)/Window.cpp \
+                           $(SRC_DIR)/Renderer.cpp \
+                           $(SRC_DIR)/Camera.cpp \
+                           $(SRC_DIR)/Overlay.cpp \
+                           $(SRC_DIR)/TextureManager.cpp \
+                           $(SRC_DIR)/ModelUtils.cpp \
+                           $(SRC_DIR)/MeshRenderer.cpp \
 
 OBJS        := $(SRCS:.cpp=.o)
 
@@ -63,7 +64,7 @@ destroy:
 	@docker rmi scop_image
 
 format:
-	@docker run --rm -v $(PWD):/usr/src/app scop_image clang-format -i srcs/*.cpp includes/*.hpp
+@docker run --rm -v $(PWD):/usr/src/app scop_image clang-format -i $(SRC_DIR)/*.cpp include/*.hpp
 
 grassblock: all
 	./scop objs/texturized/grassblock.obj objs/texturized/grassblock.bmp
